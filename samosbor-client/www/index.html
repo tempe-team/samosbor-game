@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Самосбор</title>
+    <link rel='icon' href='data:;base64,iVBORw0KGgo='>
+  </head>
+  <style>
+    @font-face {
+      font-family: 'Iosevka Fixed Slab';
+      src: url('/iosevka-fixed-slab-extended.ttf') format('truetype');
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .canvas-wrapper {
+      border: 1.5px solid black;
+      border-radius: 4px;
+      position: relative;
+    }
+
+    #mouse-highlighter,
+    #game-canvas {
+      margin: .6em;
+      font-family: 'Iosevka Fixed Slab';
+      white-space: pre;
+      user-select: none;
+      -moz-user-select: none;
+    }
+
+    #game-canvas {
+      pointer-events: none;
+      position: relative;
+      z-index: 20;
+    }
+
+    #mouse-highlighter {
+      cursor: pointer;
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    #mouse-highlighter > div > span {
+      background-color: #e0e0e0;
+      opacity: 0;
+      transition: opacity .5s ease-out;
+    }
+
+    #mouse-highlighter > div > span:hover {
+      opacity: 1;
+      transition: opacity .0s;
+    }
+  </style>
+  <body>
+    <div class='canvas-wrapper'>
+      <div id='mouse-highlighter'></div>
+      <pre id='game-canvas'></pre>
+    </div>
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+    <script src="./bootstrap.js"></script>
+  </body>
+</html>

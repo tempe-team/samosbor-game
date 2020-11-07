@@ -1,0 +1,13 @@
+[package]
+name = "samosbor-core"
+version = "0.0.0"
+authors = [ "Sergey Ukolov <zezic51@yandex.ru>"
+          , "Artem Kanev <a-kanev@yandex.ru>"
+          ]
+edition = "2018"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+legion = { version = "0.3.1", features = ["serde"]}
+uuid = { version = "0.8.1", features = ["serde", "v4", "wasm-bindgen"] }

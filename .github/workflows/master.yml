@@ -1,0 +1,44 @@
+name: Master workflow
+
+on:
+  push:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: [self-hosted, linux, x64]
+
+    # Server
+    - name: Build docker image
+      working-directory: 'samosbor-server'
+      run: ./docker-image.sh samosbor/server
+    - name: Run tests
+      working-directory: 'samosbor-server'
+      run: cargo test --verbose
+    - name: Stop previous container
+      run: docker stop samosbor-server
+    - name: Remove previous container
+      run: docker rm samosbor-server
+    - name: Run docker container
+      run: docker run --name samosbor-server -d -p 127.0.0.1:8000:80 samosbor/server
+
+
+    # Client
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build wasm binary
+      working-directory: 'samosbor-client'
+      run: wasm-pack build
+    - name: Build js static
+      run: npm install && npm run build
+      working-directory: 'samosbor-client/www'
+      env:
+        WS_CONNECT_STRING: 'wss://smsbr.nixorn.me/ws'
+    - name: Remove old static
+      run: rm -r ~/static
+    - name: Deploy static
+      run: cp -r www/dist ~/static
