@@ -1130,7 +1130,6 @@ checksum = "ef703b7cb59335eae2eb93ceb664c0eb7ea6bf567079d843e09420219668e072"
 [[package]]
 name = "samosbor-core"
 version = "0.0.0"
-source = "git+ssh://github.com/tempe-team/samosbor-core.git?rev=a0aed6c08fa39869431a6c19616003e4924ee747#a0aed6c08fa39869431a6c19616003e4924ee747"
 dependencies = [
  "legion",
  "serde",
