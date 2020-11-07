@@ -12,7 +12,9 @@ jobs:
 
     runs-on: [self-hosted, linux, x64]
 
-    # Server
+    steps:
+    - uses: actions/checkout@v2
+      # Server
     - name: Build docker image
       working-directory: 'samosbor-server'
       run: ./docker-image.sh samosbor/server
@@ -26,10 +28,7 @@ jobs:
     - name: Run docker container
       run: docker run --name samosbor-server -d -p 127.0.0.1:8000:80 samosbor/server
 
-
     # Client
-    steps:
-    - uses: actions/checkout@v2
     - name: Build wasm binary
       working-directory: 'samosbor-client'
       run: wasm-pack build
