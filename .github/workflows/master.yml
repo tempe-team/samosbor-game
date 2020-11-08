@@ -38,6 +38,6 @@ jobs:
       env:
         WS_CONNECT_STRING: 'wss://smsbr.nixorn.me/ws'
     - name: Remove old static
-      run: rm -r ~/static
+      run: rm -rf ~/static
     - name: Deploy static
       run: cp -r samosbor-client/www/dist ~/static
