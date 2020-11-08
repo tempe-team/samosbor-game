@@ -40,4 +40,4 @@ jobs:
     - name: Remove old static
       run: rm -r ~/static
     - name: Deploy static
-      run: cp -r www/dist ~/static
+      run: cp -r samosbor-client/www/dist ~/static
