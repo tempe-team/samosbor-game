@@ -55,19 +55,27 @@ highlighter.addEventListener('contextmenu', (e) => {
   e.preventDefault()
 }, false)
 
-function handleMouseEvent(kind, e) {
-  if (e.target.tagName !== 'SPAN') { return }
-  const x = [...e.target.parentElement.children].indexOf(e.target)
-  const y = [...e.target.parentElement.parentElement.children].indexOf(e.target.parentElement)
-  console.log('[mouse]', kind, { x, y })
+function handleMouseEvent(kind, event) {
+  if (event.target.tagName !== 'SPAN') { return }
+  const x = [...event.target.parentElement.children].indexOf(event.target)
+  const y = [...event.target.parentElement.parentElement.children].indexOf(event.target.parentElement)
+  if (kind == 'wheel') {
+    window.clientState.zoom(event.deltaY)
+  } else {
+    console.log(kind, event, { x, y })
+  }
 }
 
-highlighter.addEventListener('wheel', (e) => {
-  handleMouseEvent(e.deltaY, e)
+highlighter.addEventListener('wheel', (event) => {
+    handleMouseEvent('wheel', event)
 })
 
-highlighter.addEventListener('mousedown', (e) => {
-  handleMouseEvent(e.buttons, e)
+highlighter.addEventListener('mousedown', (event) => {
+    handleMouseEvent('mousedown', event)
+})
+
+highlighter.addEventListener('mouseup', (event) => {
+    handleMouseEvent('mouseup', event)
 })
 
 async function runRenderLoop () {

@@ -41,6 +41,7 @@ pub struct ClientState {
     world: World,
     resources: Resources,
     view_point: Position,
+    window_radius: usize
 }
 
 /// short alias for serialize
@@ -75,14 +76,6 @@ impl ClientState {
                 'r' => Ok(E),
                 'l' => Ok(W),
                 'd' => Ok(S),
-                // 'w' => Ok(N),
-                // 'e' => Ok(NE),
-                // 'd' => Ok(E),
-                // 'x' => Ok(SE),
-                // 's' => Ok(S),
-                // 'z' => Ok(SW),
-                // 'a' => Ok(W),
-                // 'q' => Ok(NW),
                 _   => Err(String::from("Wrong key kode for step")),
             }
         }
@@ -98,6 +91,12 @@ impl ClientState {
             Err(err) => {
                 ser(err)
             },
+        }
+    }
+
+    pub fn zoom(&mut self, zoom: i32) {
+        if (self.window_radius as i32 + zoom) >= 5 {
+            self.window_radius = (self.window_radius as i32 + zoom) as usize
         }
     }
 
@@ -117,6 +116,7 @@ impl ClientState {
                                 world: world,
                                 resources: resources,
                                 view_point: my_pos,
+                                window_radius: 5,
                             }
                         },
                         Err (err) => panic!(err), // FIXME disconnect
@@ -131,7 +131,7 @@ impl ClientState {
     }
 
     pub fn render(&self) -> String {
-        display_world_segment(&self.world, &self.resources, self.view_point, 5)
+        display_world_segment(&self.world, &self.resources, self.view_point, self.window_radius)
     }
 
     // Eval message from server
