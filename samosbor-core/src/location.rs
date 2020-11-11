@@ -49,10 +49,60 @@ pub struct Location {
     pub width: usize,
     pub height: usize,
     pub tiles: Vec<Tile>,
+    pub passable: Vec<bool>,
 }
 
-pub fn gen_map(width: usize, height: usize) -> Vec<Tile> {
-    let mut tiles = vec![Tile::Floor; width * height];
+impl Location {
+    pub fn new(width: usize, height: usize) -> Location {
+        let (tiles, passable) = gen_map (width, height);
+        Location {
+            width,
+            height,
+            tiles,
+            passable,
+        }
+    }
+
+    pub fn try_to_spawn_blocking (&mut self) -> Option<Position> {
+        let width = self.width;
+        let mbidx = self.passable.iter().enumerate()
+            .filter(|(_, val)| **val)
+            .next();
+        match mbidx {
+            Some ((free_idx, _)) => {
+                self.passable[free_idx] = false;
+                Some (idx2pos(width, free_idx))
+            },
+            _ => None,
+        }
+    }
+
+    pub fn block_tile_by_position (&mut self, pos: Position) {
+        let idx = pos2idx(self.width, pos);
+        self.passable [idx] = false;
+    }
+
+    pub fn move_blocking_thing (
+        &mut self,
+        old_pos: Position,
+        new_pos: Position,
+    ) -> Result<(), ()> {
+        let width = self.width;
+        let old_idx = pos2idx(width, old_pos);
+        let new_idx = pos2idx(width, new_pos);
+        if self.passable[new_idx] {
+            self.passable[new_idx] = false;
+            self.passable[old_idx] = true;
+            Ok (())
+        } else {
+            Err(())
+        }
+    }
+}
+
+pub fn gen_map(width: usize, height: usize) -> (Vec<Tile>, Vec<bool>) {
+    let mut tiles    = vec![Tile::Floor; width * height];
+    let mut passable = vec![true; width * height];
     for i in 0..width {
         tiles[i] = Tile::Wall;
     }
@@ -65,18 +115,13 @@ pub fn gen_map(width: usize, height: usize) -> Vec<Tile> {
         tiles[i*width] = Tile::Wall;
         tiles[i*width + width - 1] = Tile::Wall;
     }
-    tiles
-}
-
-impl Location {
-    pub fn new(width: usize, height: usize) -> Location {
-        let tiles = gen_map (width, height);
-        Location {
-            width,
-            height,
-            tiles,
+    for (i, t) in tiles.iter().enumerate() {
+        match t {
+            Tile::Floor => passable[i] = true,
+            Tile::Wall => passable[i] = false,
         }
     }
+    (tiles, passable)
 }
 
 // ############ Logic

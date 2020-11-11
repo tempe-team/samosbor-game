@@ -138,7 +138,7 @@ fn main () {
                 println!("Recieved message {:?} from {:?}", evt, client_id);
                 match eval_event(
                     &mut world,
-                    &resources,
+                    &mut resources,
                     evt,
                 ) {
                     (Some(to_target), Some(to_others)) => {
@@ -204,9 +204,9 @@ fn main () {
                         ClientConnect(unit.clone())),
                     );
 			              for message in receiver.incoming_messages() {
-				                let message = message.unwrap();
+				                let message = message;
 				                match message {
-					                  OwnedMessage::Close(_) => {
+					                  Ok (OwnedMessage::Close(_)) => {
 						                    println!("Client {} disconnected", ip);
                                 let _ = global_tx_n.send((
                                     client_id,
@@ -214,7 +214,7 @@ fn main () {
                                 ));
 						                    return;
 					                  }
-					                  OwnedMessage::Text(val) => match serde_json::from_str(&val) {
+					                  Ok (OwnedMessage::Text(val)) => match serde_json::from_str(&val) {
                                 Ok(SmsbrIntention(intent)) =>
                                     global_tx_n.send((
                                         client_id, intention_to_event(intent)

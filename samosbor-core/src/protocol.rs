@@ -20,6 +20,7 @@ pub enum SamosborError {
     NoSuchClient, // Server error. Somebody trying to connect under not existing id.
     NoEmptyTiles, // Whole location filled with units
     UnexpectedInput,
+    InternalLogicError, // Should never happen
 }
 
 unsafe impl Send for SamosborError {}

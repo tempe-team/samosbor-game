@@ -111,28 +111,33 @@ pub fn display_world_segment(
 pub fn spawn_unit(
     unit: Unit,
     world: &mut World,
-    resources: &Resources,
+    resources: &mut Resources,
 ) -> Result<Position, SamosborError> {
-    let mbpos = get_first_free_tile(world, resources);
-    match mbpos {
-        Some(pos) => {
-            world.push((
+    let mut location = resources
+        .get_mut::<Location>()
+        .ok_or(SamosborError::InternalLogicError)?;
+    let pos = location
+        .try_to_spawn_blocking()
+        .ok_or(SamosborError::NoEmptyTiles)?;
+    world.push((
                 unit,
                 pos.clone(),
                 Renderable { glyph: '@'},
                 Block (),
                 SerializeMe ()));
-            Ok(pos)
-        },
-        None => Err(SamosborError::NoEmptyTiles),
-    }
+    Ok(pos)
 }
 
 pub fn add_unit(
     world: &mut World,
+    resources: &mut Resources,
     unit: Unit,
     pos: Position
 ) -> Result<(), SamosborError>  {
+    let mut location = resources
+        .get_mut::<Location>()
+        .ok_or(SamosborError::InternalLogicError)?;
+    location.block_tile_by_position(pos);
     world.push((
         unit,
         pos,
@@ -140,7 +145,7 @@ pub fn add_unit(
         Block (),
         SerializeMe ()
     ));
-    Ok (())
+    Ok(())
 }
 
 pub fn remove_unit(
@@ -216,49 +221,51 @@ pub fn block_tiles_from_location(
 
 pub fn unit_step(
     world: &mut World,
+    resources: &mut Resources,
     unit: Unit,
     dir: Direction
 ) -> Result<(),SamosborError> {
     let mut get_position_query =
         <(&Unit, &Position)>::query();
-    let mut check_block_query =
-        <(&Block, &Position)>::query();
     let mut update_query =
         <(&Unit, &mut Position)>::query();
+    let mut location = resources
+        .get_mut::<Location>()
+        .ok_or(SamosborError::InternalLogicError)?;
     let (_, old_pos) = get_position_query
         .iter(world)
         .filter(|(unit_, _)| **unit_ == unit)
         .next().ok_or(NoSuchUnit)?;
     let dest_pos = eval_direction(*old_pos, dir);
-    if let Some (_block) = check_block_query
-        .iter(world)
-        .filter(|(_, tpos)| **tpos == dest_pos)
-        .next() {
-            Err(Collision)
-        } else {
-            update_query
-                .iter_mut(world)
-                .filter(|(unit_, _)|{**unit_ == unit})
-                .for_each (|(_, pos)|{
-                    {
-                        pos.x = dest_pos.x;
-                        pos.y = dest_pos.y;
-                    }
-                });
-            Ok(())
-        }
+    if let Err (_) = location.move_blocking_thing (
+        *old_pos,
+        dest_pos,
+    ) {
+        Err (Collision)
+    } else {
+        update_query
+            .iter_mut(world)
+            .filter(|(unit_, _)|{**unit_ == unit})
+            .for_each (|(_, pos)|{
+                {
+                    pos.x = dest_pos.x;
+                    pos.y = dest_pos.y;
+                }
+            });
+        Ok(())
+    }
 }
 
-/// Apply event to state, mutate it, and get response
+                                           /// Apply event to state, mutate it, and get response
 pub fn eval_event(
     world: &mut World,
-    resources: &Resources,
+    resources: &mut Resources,
     e:Event
 ) -> ( Option <SamosborMessage>, // message to client who is reason of event
        Option <SamosborMessage>, // message to rest clients
 ) {
     match e {
-        AddUnit {unit, position} => match add_unit(world, unit, position) {
+        AddUnit {unit, position} => match add_unit(world, resources, unit, position) {
             Ok(()) => (
                 Some(SmsbrEvent(e)),
                 Some(SmsbrEvent(e))
@@ -278,7 +285,7 @@ pub fn eval_event(
                 None
             ),
         },
-        Step {unit, direction} => match unit_step(world, unit, direction) {
+        Step {unit, direction} => match unit_step(world, resources, unit, direction) {
             Ok(()) => (
                 Some(SmsbrEvent (e)),
                 Some(SmsbrEvent (e)),
