@@ -150,15 +150,21 @@ pub fn add_unit(
 
 pub fn remove_unit(
     world: &mut World,
+    resources: &mut Resources,
     unit: Unit,
 ) -> Result<(), SamosborError> {
-    let mut query = <(Entity, &Unit)>::query();
+    let mut location = resources
+        .get_mut::<Location>()
+        .ok_or(SamosborError::InternalLogicError)?;
+    let mut query = <(Entity, &Unit, &Position)>::query();
     let to_remove = query
         .iter(world)
-        .filter(|(_, unit_)|{ *unit_.clone() == unit})
-        .map(|(entity, _)| *entity).collect::<Vec<Entity>>();
-    for entity in to_remove {
-            world.remove(entity);
+        .filter(|(_, unit_, _)|{ *unit_.clone() == unit})
+        .map(|(entity, _, pos)|(*entity, *pos))
+        .collect::<Vec<(Entity, Position)>>();
+    for (entity, pos) in to_remove {
+        world.remove(entity);
+        location.unblock_tile(pos);
     };
     Ok (())
 }
@@ -275,7 +281,7 @@ pub fn eval_event(
                 None
             ),
         },
-        RemoveUnit (unit) => match remove_unit(world, unit) {
+        RemoveUnit (unit) => match remove_unit(world, resources, unit) {
             Ok(()) => (
                 Some(SmsbrEvent(e)),
                 Some(SmsbrEvent(e))
@@ -316,7 +322,7 @@ pub fn eval_event(
                 Err (err) => (Some(SmsbrError(err)), None),
             }
         }
-        ClientDisconnect(unit) => match remove_unit(world, unit) {
+        ClientDisconnect(unit) => match remove_unit(world, resources, unit) {
             Ok(()) => (
                 None,
                 Some(SmsbrEvent(RemoveUnit(unit))),

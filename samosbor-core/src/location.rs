@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::clone::Clone;
 use std::marker::Copy;
 use uuid::Uuid;
+use bracket_lib::prelude::*;
 
 // ############ Components
 
@@ -97,6 +98,26 @@ impl Location {
         } else {
             Err(())
         }
+    }
+
+    pub fn unblock_tile (
+        &mut self,
+        pos: Position,
+    ) {
+        let width = self.width;
+        self.passable[pos2idx(width, pos)] = true;
+    }
+}
+
+impl Algorithm2D for Location {
+    fn dimensions(&self) -> Point {
+        Point::new(self.width, self.height)
+    }
+}
+
+impl BaseMap for Location {
+    fn is_opaque(&self, idx:usize) -> bool {
+        self.tiles[idx as usize] == Tile::Wall
     }
 }
 

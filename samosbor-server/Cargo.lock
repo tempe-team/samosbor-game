@@ -1986,7 +1986,6 @@ name = "samosbor-server"
 version = "0.1.0"
 dependencies = [
  "bincode",
- "bracket-lib",
  "clap",
  "futures 0.3.5",
  "legion",
