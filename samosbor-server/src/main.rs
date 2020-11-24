@@ -23,6 +23,7 @@ use websocket::{
 
 use clap::{Arg, App};
 use samosbor_core::{
+    intention2event,
     eval_event,
     block_tiles_from_location,
     ClientId,
@@ -35,8 +36,6 @@ use samosbor_core::{
         SamosborMessage::{
             SmsbrIntention,
         },
-        Event,
-        Event::{ClientConnect, ClientDisconnect},
         Intention,
     },
 };
@@ -90,11 +89,6 @@ fn send_broadcast_message (
     }
 }
 
-fn intention_to_event(intention:Intention) -> Event {
-    match intention {
-        Intention::Step {unit, direction} => Event::Step{unit, direction},
-    }
-}
 fn main () {
     // Command line args
     let matches = App::new("Samosbor server")
@@ -125,7 +119,7 @@ fn main () {
     let clients_async_global = clients_async.clone();
 
     // Reciever + sender for global event loop
-    let (global_tx, global_rc): (SyncSender<(ClientId, Event)>, Receiver<(ClientId, Event)>) = mpsc::sync_channel(8); // 8 is buffer size
+    let (global_tx, global_rc): (SyncSender<(ClientId, Intention)>, Receiver<(ClientId, Intention)>) = mpsc::sync_channel(8); // 8 is buffer size
 
     // Global event loop
     spawn(move || {
@@ -134,36 +128,42 @@ fn main () {
         resources.insert(Location::new(64, 32));
         block_tiles_from_location(&mut world, &resources);
         loop {
-            if let Ok((client_id, evt)) = global_rc.recv() {
-                println!("Recieved message {:?} from {:?}", evt, client_id);
-                match eval_event(
-                    &mut world,
-                    &mut resources,
-                    evt,
-                ) {
-                    (Some(to_target), Some(to_others)) => {
-                        send_target_message(
-                            client_id,
-                            to_target,
-                            &clients_async_global,
-                        );
-                        send_broadcast_message(
+            if let Ok((client_id, intention)) = global_rc.recv() {
+                println!(
+                    "Recieved message {:?} from {:?}",
+                    intention,
+                    client_id,
+                );
+                if let Ok (evt) = intention2event(&world, &resources, intention) {
+                    match eval_event(
+                        &mut world,
+                        &mut resources,
+                        evt,
+                    ) {
+                        (Some(to_target), Some(to_others)) => {
+                            send_target_message(
+                                client_id,
+                                to_target,
+                                &clients_async_global,
+                            );
+                            send_broadcast_message(
+                                Some (client_id),
+                                to_others,
+                                &clients_async_global,
+                            );
+                        },
+                        (None, Some(to_others)) => send_broadcast_message(
                             Some (client_id),
                             to_others,
                             &clients_async_global,
-                        );
-                    },
-                    (None, Some(to_others)) => send_broadcast_message(
-                        Some (client_id),
-                        to_others,
-                        &clients_async_global,
-                    ),
-                    (Some(to_target), None) => send_target_message(
-                        client_id,
-                        to_target,
-                        &clients_async_global,
-                    ),
-                    (None, None) => (),
+                        ),
+                        (Some(to_target), None) => send_target_message(
+                            client_id,
+                            to_target,
+                            &clients_async_global,
+                        ),
+                        (None, None) => (),
+                    }
                 }
             }
         }
@@ -187,7 +187,9 @@ fn main () {
 			              let (mut receiver, sender) = client.split().unwrap();
 
                     let unit = Unit (Uuid::new_v4());
-                    let client_id = ClientId::new(Uuid::new_v4());
+                    let client_id = ClientId::new(
+                        Uuid::new_v4()
+                    );
                     let client_internal = Client {
                         unit: unit.clone(),
                         sender: sender,
@@ -201,7 +203,7 @@ fn main () {
                     };
                     let _ = global_tx_n.send((
                         client_id,
-                        ClientConnect(unit.clone())),
+                        Intention::ClientConnect(unit.clone())),
                     );
 			              for message in receiver.incoming_messages() {
 				                let message = message;
@@ -210,14 +212,14 @@ fn main () {
 						                    println!("Client {} disconnected", ip);
                                 let _ = global_tx_n.send((
                                     client_id,
-                                    ClientDisconnect(unit.clone())
+                                    Intention::ClientDisconnect(unit.clone())
                                 ));
 						                    return;
 					                  }
 					                  Ok (OwnedMessage::Text(val)) => match serde_json::from_str(&val) {
                                 Ok(SmsbrIntention(intent)) =>
                                     global_tx_n.send((
-                                        client_id, intention_to_event(intent)
+                                        client_id, intent
                                     )).unwrap(),
                                 Ok(unexpected) => println!("Unexpected(but succesfully parsed) message type from client  {:?}", unexpected),
                                 Err (err) => eprintln!("error on client: {:#?}", err),
@@ -227,7 +229,7 @@ fn main () {
 			              };
                     let _ = global_tx_n.send((
                         client_id,
-                        ClientDisconnect(unit.clone()),
+                        Intention::ClientDisconnect(unit.clone()),
                     ));
 		            });
 	          };

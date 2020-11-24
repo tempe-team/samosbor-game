@@ -1,4 +1,5 @@
 use legion::*;
+use bracket_lib::prelude::*;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -22,6 +23,7 @@ use crate::location::{
     pos2idx,
     rectangle_tiles,
     idx2pos,
+    idxs2dir,
 };
 use crate::protocol::{
     Event,
@@ -36,9 +38,12 @@ use crate::protocol::{
     SamosborError::{
         Collision,
         NoSuchUnit,
+        AlreadyHere,
+        TilesNotANeighbors,
     },
     SamosborMessage,
     SamosborMessage::{SmsbrEvent, SmsbrError, SmsbrState},
+    Intention,
 };
 use crate::render::{Renderable, get_segment};
 use crate::serialization::{SerializeMe, serialize_state};
@@ -225,6 +230,49 @@ pub fn block_tiles_from_location(
     }
 }
 
+pub fn intention2event(
+    world: &World,
+    resources: &Resources,
+    intention: Intention,
+) -> Result<Event, SamosborError> {
+    match intention {
+        Intention::ClientConnect (unit) => Ok (Event::ClientConnect (unit)),
+        Intention::ClientDisconnect (unit) => Ok (Event::ClientDisconnect (unit)),
+        Intention::GoToPosition {unit, position} => {
+            let mut get_position_query =
+                <(&Unit, &Position)>::query();
+            let (_, start_pos) = get_position_query
+                .iter(world)
+                .filter(|(unit_, _)| **unit_ == unit)
+                .next().ok_or(NoSuchUnit)?;
+            let location = resources
+                .get::<Location>()
+                .ok_or(SamosborError::InternalLogicError)?;
+            let start = pos2idx(location.width, *start_pos);
+            let end = pos2idx(location.width, position);
+            let path = a_star_search(
+                start,
+                end,
+                &*location,
+            );
+            if path.steps.len() > 1 {
+                let step_to = path.steps[1];
+                let direction = idxs2dir(
+                    location.width,
+                    start,
+                    step_to,
+                ).ok_or(TilesNotANeighbors)?;
+                Ok(Step{unit, direction})
+            } else {
+                // can not move zero times
+                // already here
+                Err(AlreadyHere)
+            }
+
+        }
+    }
+}
+
 pub fn unit_step(
     world: &mut World,
     resources: &mut Resources,
@@ -242,7 +290,8 @@ pub fn unit_step(
         .iter(world)
         .filter(|(unit_, _)| **unit_ == unit)
         .next().ok_or(NoSuchUnit)?;
-    let dest_pos = eval_direction(*old_pos, dir);
+    let dest_pos = eval_direction(*old_pos, dir)
+        .ok_or(Collision)?;
     if let Err (_) = location.move_blocking_thing (
         *old_pos,
         dest_pos,
@@ -262,7 +311,7 @@ pub fn unit_step(
     }
 }
 
-                                           /// Apply event to state, mutate it, and get response
+/// Apply event to state, mutate it, and get response
 pub fn eval_event(
     world: &mut World,
     resources: &mut Resources,

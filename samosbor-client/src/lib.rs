@@ -1,6 +1,8 @@
 mod utils;
 extern crate web_sys;
 
+use std::cmp::{max};
+
 use serde::{Deserialize, Serialize};
 use serde_json::{
     from_value
@@ -22,8 +24,6 @@ use samosbor_core::protocol::{
 };
 use samosbor_core::serialization::{deserialize_state};
 use samosbor_core::location::{
-    Direction,
-    Direction::{N,E,S,W},
     Unit,
     Position,
     eval_direction,
@@ -44,57 +44,54 @@ pub struct ClientState {
     window_radius: usize
 }
 
-/// short alias for serialize
-pub fn ser<T:Serialize>(v: T) -> String {
-    match serde_json::to_string(&v) {
-        Ok (v) => v,
-        Err (err) => panic!(err),
-    }
-}
-
-/// short alias for deserialize
-pub fn deser<'a, T:Deserialize<'a>>(source: &'a str) -> Result<T, SamosborError> {
-    match serde_json::from_str(source) {
-        Ok (v) => Ok (v),
-        Err (err) => {
-            eprintln!("{}", err);
-            Err(UnexpectedInput)
-        },
-    }
-}
-
 #[wasm_bindgen]
 impl ClientState {
     // Commands from JS to webasm.
     // Webasm recieves comand from js io, evaluates
     // then tell what JS should send to server.
-    pub fn step(&mut self, d:char) -> String {
-        let unit = self.unit;
-        fn char2dir (c: char) -> Result<Direction, String> {
-            match c {
-                'u' => Ok(N),
-                'r' => Ok(E),
-                'l' => Ok(W),
-                'd' => Ok(S),
-                _   => Err(String::from("Wrong key kode for step")),
-            }
-        }
-        match char2dir(d) {
-            Ok(direction) => ser (
-                SmsbrIntention(
-                    Intention::Step {
-                        unit: unit,
-                        direction: direction,
-                    }
+
+    pub fn handle_client_input(
+        &mut self,
+        evt_raw: &str,
+    ) -> String {
+        match deser(evt_raw) {
+            Ok (ClientInput::MouseDown {position}) => {
+                let abs_position = self.pos_relative2absolute (position);
+                ser (
+                    SmsbrIntention (
+                        Intention::GoToPosition {
+                            unit: self.unit,
+                            position: abs_position,
+                        }
+                    )
                 )
-            ),
-            Err(err) => {
-                ser(err)
             },
+            Ok (
+                ClientInput::Wheel {
+                    position,
+                    delta,
+                }
+            ) => {
+                self.zoom(delta);
+                "".to_string()
+            },
+            _ => "".to_string(),
         }
     }
 
-    pub fn zoom(&mut self, zoom: i32) {
+    fn pos_relative2absolute(
+        &self,
+        rel_pos: Position,
+    ) -> Position {
+        let top = max(0, self.view_point.y as i32 - self.window_radius as i32);
+        let left = max(0, self.view_point.x as i32 - self.window_radius as i32);
+        Position {
+            x: left as usize + rel_pos.x,
+            y: top as usize + rel_pos.y,
+        }
+    }
+
+    fn zoom(&mut self, zoom: i32) {
         if (self.window_radius as i32 + zoom) >= 5 {
             self.window_radius = (self.window_radius as i32 + zoom) as usize
         }
@@ -145,10 +142,12 @@ impl ClientState {
                         e
                     );
                     if unit.clone() == self.unit {
-                        self.view_point = eval_direction(
+                        if let Some (new_view_point) = eval_direction(
                             self.view_point,
                             direction
-                        )
+                        ) {
+                            self.view_point = new_view_point;
+                        }
                     };
                     return "".to_string()
                 },
@@ -165,3 +164,33 @@ impl ClientState {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum ClientInput {
+    MouseUp {position: Position},
+    MouseDown {position: Position},
+    Wheel {position: Position, delta: i32},
+    KeyDown {key_code: usize},
+    KeyUp {key_code: usize},
+}
+
+/// short alias for serialize
+pub fn ser<T:Serialize>(v: T) -> String {
+    match serde_json::to_string(&v) {
+        Ok (v) => v,
+        Err (err) => panic!(err),
+    }
+}
+
+/// short alias for deserialize
+pub fn deser<'a, T:Deserialize<'a>>(source: &'a str) -> Result<T, SamosborError> {
+    match serde_json::from_str(source) {
+        Ok (v) => Ok (v),
+        Err (err) => {
+            eprintln!("{}", err);
+            Err(UnexpectedInput)
+        },
+    }
+}
+
+

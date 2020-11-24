@@ -21,6 +21,8 @@ pub enum SamosborError {
     NoEmptyTiles, // Whole location filled with units
     UnexpectedInput,
     InternalLogicError, // Should never happen
+    AlreadyHere,
+    TilesNotANeighbors,
 }
 
 unsafe impl Send for SamosborError {}
@@ -40,15 +42,23 @@ unsafe impl Sync for SamosborMessage {}
 /// What client want to do.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum Intention {
-    Step { unit: Unit, direction: Direction },
+    GoToPosition { unit: Unit, position: Position },
+    ClientConnect (Unit),
+    ClientDisconnect (Unit),
 }
 
 /// Thing which going deterministic mutate state.
 /// What is considered as happened by game server.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum Event {
-    Step { unit: Unit, direction: Direction },
-    AddUnit { unit: Unit, position: Position }, // add unit spawned in other state
+    Step {
+        unit: Unit,
+        direction: Direction,
+    },
+    AddUnit {
+        unit: Unit,
+        position: Position,
+    }, // add unit spawned in other state
     RemoveUnit (Unit),
     ClientConnect (Unit),
     ClientDisconnect (Unit),
