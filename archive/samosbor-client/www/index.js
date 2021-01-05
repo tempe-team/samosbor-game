@@ -3,13 +3,6 @@ import { ClientState } from 'samosbor-client';
 const pre = document.getElementById('game-canvas');
 const highlighter = document.getElementById('mouse-highlighter');
 
-const directions = {
-  37: 'l',
-  39: 'r',
-  38: 'u',
-  40: 'd'
-}
-
 const mouseHighlighterSize = {
   x: 0,
   y: 0
@@ -42,32 +35,86 @@ function fillMouseHighlighter (text) {
   }
 }
 
-document.addEventListener('keydown', (e) => {
-    console.log('[keyboard]', e)
-    if (e.keyCode in directions) {
-        const d = directions[e.keyCode]
-        let event = window.clientState.step(d);
-        window.ws.send(event);
-    }
-})
-
 highlighter.addEventListener('contextmenu', (e) => {
   e.preventDefault()
 }, false)
 
-function handleMouseEvent(kind, e) {
-  if (e.target.tagName !== 'SPAN') { return }
-  const x = [...e.target.parentElement.children].indexOf(e.target)
-  const y = [...e.target.parentElement.parentElement.children].indexOf(e.target.parentElement)
-  console.log('[mouse]', kind, { x, y })
+function handleClientEvent(kind, event) {
+  if (event.target.tagName !== 'SPAN') { return }
+  let message = constructClientEvent(kind, event);
+
+  let msg2server = window.clientState.handle_client_input(
+    JSON.stringify(message)
+  );
+
+  if (msg2server != '') {
+    window.ws.send(msg2server)
+  }
 }
 
-highlighter.addEventListener('wheel', (e) => {
-  handleMouseEvent(e.deltaY, e)
+function constructClientEvent (kind, event) {
+  const x = [...event.target.parentElement.children].indexOf(event.target)
+  const y = [...event.target.parentElement.parentElement.children].indexOf(event.target.parentElement)
+  if (kind == 'wheel') {
+    return {
+      "Wheel" : {
+        position: {
+          x:x,
+          y:y
+        }
+      }
+    }
+  } else if (kind == 'mousedown') {
+    return {
+      "MouseDown":{
+        position: {
+          x:x,
+          y:y
+        }
+      }
+    }
+  } else if (kind == 'mouseup') {
+    return {
+      'MouseUp':{
+        position:{
+          x:x,
+          y:y
+        }
+      }
+    }
+  } else if (kind == 'keydown') {
+    return {
+      'KeyDown':{
+        key_code: event.keyCode
+      }
+    }
+  } else if (kind == 'keyup') {
+    return {
+      'KeyUp':{
+        key_code: event.keyCode
+      }
+    }
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  handleClientEvent('keydown', e)
 })
 
-highlighter.addEventListener('mousedown', (e) => {
-  handleMouseEvent(e.buttons, e)
+document.addEventListener('keyup', (e) => {
+  handleClientEvent('keyup', e)
+})
+
+highlighter.addEventListener('wheel', (event) => {
+    handleClientEvent('wheel', event)
+})
+
+highlighter.addEventListener('mousedown', (event) => {
+    handleClientEvent('mousedown', event)
+})
+
+highlighter.addEventListener('mouseup', (event) => {
+    handleClientEvent('mouseup', event)
 })
 
 async function runRenderLoop () {
