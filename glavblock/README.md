@@ -2,10 +2,14 @@
 
 Game in [Samosbor](https://samosb.org/) setting. Bastard of economical strategy and visual novel.
 
+# Docs
+
+Various game design digits in [spreadsheet](https://docs.google.com/spreadsheets/d/1PA18gcbbeIUVYdINowk_PRhOiLDzaMh0UOmgDVoPoxM/edit#gid=0)
+
 # Roadmap
 
 - [ ] Economical strategy element
-  - [ ] Base with stats
+  - [ ] Colony with stats
     - [ ] People
       - [ ] Profession
         - [ ] Profession model
@@ -59,6 +63,9 @@ Game in [Samosbor](https://samosb.org/) setting. Bastard of economical strategy 
       - [ ] AeroPump
       - [ ] WaterPump
       - [ ] VoidScanner
+    - [ ] Ecology
+      - [ ] Air imputity
+      - [ ] Water impurity
     - [ ] Colony init
   - [ ] Update-per-turn logic
     - [ ] Stationary objects degradation(run-out)
@@ -83,6 +90,10 @@ Game in [Samosbor](https://samosb.org/) setting. Bastard of economical strategy 
           - [ ] Sickness
 - [ ] Events (Visual novel element)
 - [ ] Content server
+  - [ ] Colony perks
+  - [ ] Quests
+  - [ ] Events
+    - [ ] Interface
   - [ ] Script language integration ([gluon](https://github.com/gluon-lang/gluon)? [rhai](https://github.com/jonathandturner/rhai)? lua? [Something else](https://github.com/ruse-lang/langs-in-rust)?)
   - [ ] Events api in core library
   - [ ] Http (or maybe graphql?) server whitch serves events sets. Contextually.
