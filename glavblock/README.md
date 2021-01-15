@@ -17,37 +17,24 @@ Various game design digits in [spreadsheet](https://docs.google.com/spreadsheets
         - [ ] Change profession logic
         - [ ] Experience (build power incrementaion)
       - [ ] Equip
-        - [ ] Respirator
-        - [ ] Clothes
-        - [ ] Inhaler
-        - [ ] HogweedSuit
-        - [ ] ConcreteSuit
-        - [ ] Bulletproof
-        - [ ] Helmet
-        - [ ] ExoskeletonU
-        - [ ] ExoskeletonZ
-      - [ ] Weapon
-        - [ ] BattleRake
-        - [ ] Flamethrower
-        - [ ] Granit
-        - [ ] PG6
-        - [ ] Grinder
-        - [ ] RPL
-        - [ ] AE
-        - [ ] PPS
-        - [ ] PM
+        - [ ] Head slot
+        - [ ] Face slot
+        - [ ] Torso slot
+        - [ ] Legs slot
+    - [ ] Party Trust Level
     - [ ] Resources
-    - [ ] Area
-      - [ ] Undistributed
-      - [ ] Living
-      - [ ] Infrastructure
-      - [ ] Science
-      - [ ] Military
-      - [ ] Party
-      - [ ] Medical
+      - [ ] Area
+        - [ ] Living
+        - [ ] Industrial
+        - [ ] Science
+        - [ ] Military
+        - [ ] Party
+        - [ ] Medical
+      - [ ] Slime (as chemical raw)
+      - [ ] Various garbage (scrap, concrete, components, bio raw, etc)
     - [ ] Stationary objects (like buildings in regular strategy games)
       - [ ] Bench
-      - [ ] TurnMill
+      - [ ] Lathe
       - [ ] FormatFurnace
       - [ ] ChemLab
       - [ ] BioLab
@@ -56,10 +43,7 @@ Various game design digits in [spreadsheet](https://docs.google.com/spreadsheets
       - [ ] MolecularPrinter
       - [ ] NeuroTerminal
       - [ ] OperatingRoom
-      - [ ] GermT1
-      - [ ] GermT2
-      - [ ] GermT3
-      - [ ] Generator
+      - [ ] Germ
       - [ ] AeroPump
       - [ ] WaterPump
       - [ ] VoidScanner
@@ -68,13 +52,14 @@ Various game design digits in [spreadsheet](https://docs.google.com/spreadsheets
       - [ ] Water impurity
     - [ ] Colony init
   - [ ] Update-per-turn logic
-    - [ ] Stationary objects degradation(run-out)
+    - [ ] Stationary objects degradation
+    - [ ] Equip degradation
     - [ ] Resources
       - [ ] Production and consumption
         - [ ] Income from stalkers
         - [ ] Resources consumption
-        - [ ] Production tree (buildings)
-        - [ ] Resources degradation
+        - [ ] Production tree
+      - [ ] Resources degradation
   - [ ] [Macroquad](https://github.com/not-fl3/macroquad) interface
     - [ ] "next turn" button and colony stats
     - [ ] Control elements
