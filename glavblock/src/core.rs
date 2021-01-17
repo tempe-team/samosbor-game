@@ -1,8 +1,8 @@
 use rand::thread_rng;
 use rand::Rng;
 
-// Бросить кубы
-pub fn _d(rolls:u8, sides:u8) -> usize {
+/// Бросить кубы
+pub fn d(rolls:u8, sides:u8) -> usize {
     if sides < 1 || rolls < 1 {
         0
     } else {
@@ -16,8 +16,8 @@ pub fn _d(rolls:u8, sides:u8) -> usize {
 }
 
 /// Когда кто-то пытается впихнуть невпихуемое
-pub enum _LogicError {
-    InternalError,
+pub enum SamosborError {
+    NoEmptyArea
 }
 
 /// Уровень(изделия, опыта, ресурса и тп)

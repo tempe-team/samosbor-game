@@ -5,18 +5,20 @@ mod core;
 mod production;
 mod resources;
 mod people;
+mod area;
 
 use crate::core::*;
 use crate::production::*;
-// use crate::resources::*;
+use crate::resources::*;
 use crate::people::*;
+use crate::area::*;
 
 fn init_colony(world: &mut World) {
     // казарма с рассчетом №1-Ж
     let barracks = install_germ(
         world,
         Tier::T2,
-        Area::Military,
+        AreaType::Military,
     );
     spawn_1_g(world, barracks);
 
@@ -24,61 +26,78 @@ fn init_colony(world: &mut World) {
     let _manufactory = install_germ(
         world,
         Tier::T2,
-        Area::Industrial,
+        AreaType::Industrial,
     );
 
     // T2 Склад с чанами и стеллажами
-    let _stock = install_germ (
+    let stock = install_germ(
         world,
         Tier::T2,
-        Area::Party,
+        AreaType::Party,
     );
 
+    // Ресурсы
+
     // Т1 комнатка для исследований
-    let _lab = install_germ (
+    install_germ (
         world,
         Tier::T1,
-        Area::Science,
+        AreaType::Science,
+    );
+
+    let start_sci_spec = random_sci_spec();
+    let cell_sciencists = install_germ(
+        world,
+        Tier::T1,
+        AreaType::Living,
+    );
+    spawn_comrad(
+        world,
+        Profession::Scientist,
+        Tier::T1,
+        ArmsSlot::ScienceToolSetT1,
+        FaceSlot::Respirator,
+        HeadSlot::Empty,
+        TorsoSlot::Robe,
+        None,
+        Some(start_sci_spec),
+        cell_sciencists,
     );
 
     // Жилячейки
-    let _cells = for _ in 0..35 {
-        install_germ(
+    for _ in 0..33 {
+        let cell = install_germ(
             world,
             Tier::T1,
-            Area::Living,
+            AreaType::Living,
         );
-    };
-
-}
-
-pub struct State {
-    world: World
-}
-
-impl State {
-    pub fn new() -> State {
-        let mut world = World::default();
-        init_colony(&mut world);
-        State {
-            world: world
+        for _ in 0..3 {
+            spawn_comrad(
+                world,
+                Profession::Worker,
+                Tier::T1,
+                ArmsSlot::WorkToolSetT1,
+                FaceSlot::Respirator,
+                HeadSlot::Empty,
+                TorsoSlot::Robe,
+                None,
+                None,
+                cell_sciencists,
+            );
         }
-    }
-
-    pub fn turn(&mut self) {
-        unimplemented!();
-    }
-
-    pub fn stats(&mut self) {
-        unimplemented!();
-    }
+    };
 }
 
+fn turn(world: &mut World) {
+    unimplemented!();
+}
 
-#[macroquad::main("Camera")]
+#[macroquad::main("Главблок")]
 async fn main() {
+    let mut world = World::default();
+    init_colony(&mut world);
     loop {
-        clear_background(RED);
+        clear_background(WHITE);
 
         // Render some primitives in camera space
 
@@ -95,6 +114,7 @@ async fn main() {
         set_default_camera();
         draw_text("HELLO", 30.0, 200.0, 30.0, BLACK);
 
+        turn(&mut world);
         next_frame().await
     }
 }

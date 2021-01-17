@@ -1,29 +1,6 @@
 use legion::*;
 use crate::core::*;
-
-/// Виды помещений
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
-pub enum Area {
-    Living, // жилячейки
-    Science, // лаборатории
-    Military, // казармы
-    Industrial, // технические и производственные помещения. терминалы, распределительные узлы, насосы, чаны, станки.
-    Party, // склады, образовательные помещения, детские сады, школы, залы партсобраний
-    Medical, // медпункты, операционные
-}
-
-// Характеристики помещений
-/// Вместимость помещения
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct AreaCapacity(pub usize);
-
-/// Занятость помещения
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct AreaOccupied(pub usize);
-
-/// Метка принадлежности(установлено в, проживает в) какого-то объекта какому то помещению
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BelongsToArea(pub Entity);
+use crate::area::*;
 
 /// Стационарные объекты
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -47,14 +24,13 @@ pub enum Stationary {
 pub fn install_germ  (
     world: &mut World,
     tier: Tier,
-    purpose: Area,
+    purpose: AreaType,
 ) -> Entity {
     world.push((
         Stationary::Germ,
         tier.clone(),
         purpose,
         tier2germ_capacity(tier),
-        AreaOccupied(0),
     ))
 }
 
@@ -68,10 +44,10 @@ fn tier2germ_capacity(tier: Tier) {
 }
 
 /// Запустить установку стационарного объекта
-pub fn _start_build_task (
-    _world: World,
-    _kind: Stationary,
-    _room: Entity,
+pub fn start_build_task (
+    world: World,
+    kind: Stationary,
+    room: Entity,
 ) {
     unimplemented!();
 }

@@ -1,6 +1,7 @@
 use legion::*;
 
 use crate::core::*;
+use crate::area::*;
 use crate::production::*;
 
 /// Сколько места занимает человек
@@ -18,12 +19,25 @@ pub enum MilitaryDep {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SciSpec {
     Samosbor, // НИИ Самосбора и Последствий. Плесень, слизь, твари, абберации, патогены и прочее. Очистка материи от влияния самосбора.
-    Bio, // НИИ Регулярной Биологии. Изучает формы жизни не затронутые самосбором, либо стабильно существующие вопреки ему. В том числе - людей. Помимо людей - борщевик, лифтовых арахн, бетоноедов и прочее.
     Nervonet, // НИИ Коммуникаций и Нервонета
     Culture, // НИИ Культуры и Оккультизма. Про фракции помимо партии.
-    SpaceConcrete, // НИИ Пространства и Бетона
+    Space, // НИИ Пространства и Бетона
     Industry, // НИИ Материалов и Промышленности
     Weapon, // НИИ Вооружения
+    Bio, // НИИ Регулярной Биологии. Изучает формы жизни не затронутые самосбором, либо стабильно существующие вопреки ему. В том числе - людей. Помимо людей - борщевик, лифтовых арахн, бетоноедов и прочее.
+}
+
+pub fn random_sci_spec () -> SciSpec {
+    match d(1,7) {
+        1 => SciSpec::Samosbor,
+        2 => SciSpec::Nervonet,
+        3 => SciSpec::Culture,
+        4 => SciSpec::Space,
+        5 => SciSpec::Industry,
+        6 => SciSpec::Weapon,
+        7 => SciSpec::Bio,
+        _ => unreachable!(),
+    }
 }
 
 /// Профессия
@@ -38,7 +52,7 @@ pub enum Profession {
     Party, // Работники госаппарата. Сюда же входят материально ответственные кладовщики, СМИ, Преподаватели.
 }
 
-/// Защита дыхания
+/// Защита дыхания, шмот налицо
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FaceSlot {
     Empty, // Нет снаряжения
@@ -96,13 +110,19 @@ pub enum ArmsSlot {
     Spark, // Сварочный аппарат Искра
 
     // Рабочие
-    WorkToolSet, // Набор инструментов
+    WorkToolSetT1,
+    WorkToolSetT2,
+    WorkToolSetT3,
 
     // Медицина
-    MedicToolSet, // Набор медика
+    MedicToolSetT1,
+    MedicToolSetT2,
+    MedicToolSetT3,
 
     // Наука
-    ScienceToolSet, // Набор ученого
+    ScienceToolSetT1,
+    ScienceToolSetT2,
+    ScienceToolSetT3,
 }
 
 
@@ -128,16 +148,6 @@ pub fn spawn_comrad(
     mbnii: Option<SciSpec>,
     room: Entity,
 ) -> Entity {
-    fn update_occupied_space(
-        world: &mut World,
-        room: Entity,
-        occupied: usize,
-    ) {
-        let mut entry = world.entry(room).unwrap();
-        let mut occupied_ = entry.get_component_mut::<AreaOccupied>().unwrap();
-        occupied_.0 += occupied
-    }
-    update_occupied_space(world, room, COMRAD_RENTED_PLACE);
     let entity = world.push ((
         prof,
         tier,
@@ -145,14 +155,14 @@ pub fn spawn_comrad(
         face,
         head,
         torso,
-        BelongsToArea(room),
+        BelongsToRoom(room),
     ));
+    let mut entry = world.entry(entity).unwrap();
+    entry.add_component(AreaOccupied(COMRAD_RENTED_PLACE));
     if let Some(dep) = mbdepartment {
-        let mut entry = world.entry(entity).unwrap();
         entry.add_component(dep);
     };
     if let Some(nii) = mbnii {
-        let mut entry = world.entry(entity).unwrap();
         entry.add_component(nii);
     };
     entity
