@@ -4,12 +4,14 @@ use legion::*;
 mod core;
 mod production;
 mod resources;
+mod storage;
 mod people;
 mod area;
 
 use crate::core::*;
 use crate::production::*;
 use crate::resources::*;
+use crate::storage::*;
 use crate::people::*;
 use crate::area::*;
 
@@ -35,8 +37,6 @@ fn init_colony(world: &mut World) {
         Tier::T2,
         AreaType::Party,
     );
-
-    // Ресурсы
 
     // Т1 комнатка для исследований
     install_germ (
@@ -86,6 +86,47 @@ fn init_colony(world: &mut World) {
             );
         }
     };
+
+    // Ресурсы
+
+    put_resource(
+        world,
+        Resource::Concentrat,
+        Some(Tier::T2),
+        100,
+    );
+
+    put_resource(
+        world,
+        Resource::Concentrat,
+        Some(Tier::T1),
+        1000,
+    );
+    put_resource(
+        world,
+        Resource::Scrap,
+        Some(Tier::T1),
+        500,
+    );
+    put_resource(
+        world,
+        Resource::Scrap,
+        Some(Tier::T2),
+        50,
+    );
+
+    put_resource(
+        world,
+        Resource::Polymer,
+        Some(Tier::T1),
+        100,
+    );
+    put_resource(
+        world,
+        Resource::Polymer,
+        Some(Tier::T2),
+        10,
+    );
 }
 
 fn turn(world: &mut World) {

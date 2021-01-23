@@ -2,7 +2,6 @@ use legion::*;
 
 use crate::core::*;
 use crate::area::*;
-use crate::production::*;
 
 /// Сколько места занимает человек
 pub static COMRAD_RENTED_PLACE: usize = 10;

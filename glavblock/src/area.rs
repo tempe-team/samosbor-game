@@ -1,5 +1,4 @@
 use legion::*;
-use crate::core::*;
 
 /// Виды помещений
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -33,10 +32,6 @@ impl From<AreaOccupied> for usize {
     }
 }
 
-/// Метка того, к какому стационарному объекту принадлежит эта штука
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BelongsToStationary (pub Entity);
-
 /// Метка того, к какой комнате принадлежит эта штука
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct BelongsToRoom (pub Entity);
@@ -51,7 +46,10 @@ pub fn get_room_free_space(
         .unwrap()
         .into_component::<AreaCapacity>()
         .unwrap().clone();
-    let mut query = <(&BelongsToRoom, &AreaOccupied)>::query();
+    let mut query = <(
+        &BelongsToRoom,
+        &AreaOccupied
+    )>::query();
     let mut sum:usize = 0;
     for mut occupied in query.iter(world)
         .filter(
@@ -66,9 +64,10 @@ pub fn get_room_free_space(
 
 /// Есть ли у нас комната этого назначения
 /// в которой есть столько места
-pub fn is_there_sufficent_room(
+pub fn get_sufficent_room(
+    world: &mut World,
     size: usize,
     type_: AreaType,
-) -> Result<Entity, SamosborError> {
+) -> Option<Entity> {
     unimplemented!();
 }

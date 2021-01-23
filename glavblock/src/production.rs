@@ -2,6 +2,11 @@ use legion::*;
 use crate::core::*;
 use crate::area::*;
 
+
+/// Метка того, к какому стационарному объекту принадлежит эта штука
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BelongsToStationary (pub Entity);
+
 /// Стационарные объекты
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Stationary {
