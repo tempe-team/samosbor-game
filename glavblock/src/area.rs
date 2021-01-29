@@ -12,7 +12,7 @@ pub enum AreaType {
 }
 
 
-/// Вместимость помещения
+/// Вместимость помещения(единицы площади)
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AreaCapacity(pub usize);
 
@@ -22,7 +22,7 @@ impl From<AreaCapacity> for usize {
     }
 }
 
-/// Сколько места занимает объект
+/// Занятая площадь(единицы площади)
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AreaOccupied(pub usize);
 
@@ -63,10 +63,10 @@ pub fn get_room_free_space(
 }
 
 /// Есть ли у нас комната этого назначения
-/// в которой есть столько места
+/// в которую вместится нечто указанного размера
 pub fn get_sufficent_room(
     world: &mut World,
-    size: usize,
+    for_: AreaOccupied,
     type_: AreaType,
 ) -> Option<Entity> {
     unimplemented!();

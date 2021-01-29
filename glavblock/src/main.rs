@@ -93,39 +93,39 @@ fn init_colony(world: &mut World) {
         world,
         Resource::Concentrat,
         Some(Tier::T2),
-        100,
+        RealUnits(100),
     );
 
     put_resource(
         world,
         Resource::Concentrat,
         Some(Tier::T1),
-        1000,
+        RealUnits(1000),
     );
     put_resource(
         world,
         Resource::Scrap,
         Some(Tier::T1),
-        500,
+        RealUnits(500),
     );
     put_resource(
         world,
         Resource::Scrap,
         Some(Tier::T2),
-        50,
+        RealUnits(50),
     );
 
     put_resource(
         world,
         Resource::Polymer,
         Some(Tier::T1),
-        100,
+        RealUnits(100),
     );
     put_resource(
         world,
         Resource::Polymer,
         Some(Tier::T2),
-        10,
+        RealUnits(10),
     );
 }
 
