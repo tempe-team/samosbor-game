@@ -1,3 +1,9 @@
+use std::collections::{
+    HashMap,
+};
+use std::ops::*;
+use std::iter::FromIterator;
+
 use legion::*;
 
 /// Виды помещений
@@ -23,7 +29,7 @@ impl From<AreaCapacity> for usize {
 }
 
 /// Занятая площадь(единицы площади)
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, )]
 pub struct AreaOccupied(pub usize);
 
 impl From<AreaOccupied> for usize {
@@ -31,6 +37,26 @@ impl From<AreaOccupied> for usize {
         val.0
     }
 }
+
+impl AddAssign for AreaOccupied {
+    fn add_assign(&mut self, other: Self) {
+        self.0 += other.0;
+    }
+}
+
+impl Sub for AreaOccupied {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self::Output {
+        Self(self.0 - other.0)
+    }
+}
+
+impl From<AreaCapacity> for AreaOccupied {
+    fn from(val: AreaCapacity) -> AreaOccupied {
+        AreaOccupied (val.0)
+    }
+}
+
 
 /// Метка того, к какой комнате принадлежит эта штука
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -45,7 +71,8 @@ pub fn get_room_free_space(
         .entry(room)
         .unwrap()
         .into_component::<AreaCapacity>()
-        .unwrap().clone();
+        .unwrap()
+        .clone();
     let mut query = <(
         &BelongsToRoom,
         &AreaOccupied
@@ -69,5 +96,46 @@ pub fn get_sufficent_room(
     for_: AreaOccupied,
     type_: AreaType,
 ) -> Option<Entity> {
-    unimplemented!();
+    let mut areas: HashMap<Entity, (AreaCapacity, AreaOccupied)> = HashMap::new();
+    let mut areasq = <(
+        &AreaType,
+        &AreaCapacity,
+        &Entity,
+    )>::query();
+    for (_, capacity, entity) in areasq
+        .iter(world)
+        .filter(|(artype,_, _)| **artype == type_)
+    {
+        areas.insert(*entity, (*capacity, AreaOccupied(0)));
+    }
+
+    let mut buildingsq = <(
+        &BelongsToRoom,
+        &AreaOccupied,
+    )>::query();
+
+    // Собираем заполненность помещений
+    for (room, building_size) in buildingsq.iter(world) {
+        match areas.get_mut(&room.0) {
+            Some((_, occupied)) => *occupied += *building_size,
+            None => (),
+        }
+    }
+
+    // FIXME: сравнение capacity >= occupied это обход переполнения
+    let mut areas_free_space = Vec::from_iter(
+        areas
+            .iter()
+            .filter(|(k, (c, o))| AreaOccupied::from(*c) >= *o)
+            .map(|(k, (c, o))| (k, AreaOccupied::from(*c) - *o))
+            .filter (|(_, o)| *o >= for_)
+    );
+
+    // берем наиболее забитые помещения
+    // но в которые тем не менее вместится то что нам надо
+    areas_free_space.sort_by (|(_, o1), (_, o2)| o1.cmp(o2));
+    match areas_free_space.pop () {
+        Some((e, _)) => Some (*e),
+        None => None,
+    }
 }

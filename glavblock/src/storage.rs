@@ -260,7 +260,6 @@ fn store_on_floor (
     if amount == RealUnits(0) {
         return RealUnits(0)
     } else {
-        let piece_volume = piece_size(resource);
         let mut not_deposited = amount;
         while not_deposited > RealUnits (0) {
             let mbroom = get_sufficent_room(
@@ -337,7 +336,6 @@ fn writeoff_from_floor (
     resource: Resource,
     amount: RealUnits,
 ) -> RealUnits {
-        let piece_volume = piece_size(resource);
     let mut writeoff_query = <(
         &Option<Resource>,
         &Container,
@@ -404,7 +402,6 @@ fn writeoff_from_storage (
     resource: Resource,
     amount: RealUnits,
 ) -> RealUnits {
-    let piece_volume = piece_size(resource);
     let mut writeoff_query = <(
         &mut Option<Resource>,
         &mut VolumeOccupied,
