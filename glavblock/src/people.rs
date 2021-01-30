@@ -9,6 +9,7 @@ pub static COMRAD_RENTED_PLACE: usize = 10;
 /// Какому отделу ликвидаторов принадлежит боец
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MilitaryDep {
+    None, // Не военный
     OLPS, // Отдел Ликвидации Последствий Самосбора
     OBCU, // Отдел по Борьбе с Человеческими Угрозами
     OGB, // Отдел Государственной Безопасности
@@ -17,6 +18,7 @@ pub enum MilitaryDep {
 /// К какому НИИ тяготеет яйцеголовый
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SciSpec {
+    None, // Не ученый
     Samosbor, // НИИ Самосбора и Последствий. Плесень, слизь, твари, абберации, патогены и прочее. Очистка материи от влияния самосбора.
     Nervonet, // НИИ Коммуникаций и Нервонета
     Culture, // НИИ Культуры и Оккультизма. Про фракции помимо партии.
@@ -109,25 +111,17 @@ pub enum ArmsSlot {
     Spark, // Сварочный аппарат Искра
 
     // Рабочие
-    WorkToolSetT1,
-    WorkToolSetT2,
-    WorkToolSetT3,
-
-    // Медицина
-    MedicToolSetT1,
-    MedicToolSetT2,
-    MedicToolSetT3,
+    WorkToolSet,
 
     // Наука
-    ScienceToolSetT1,
-    ScienceToolSetT2,
-    ScienceToolSetT3,
+    ScienceToolSet,
 }
 
 
 /// Эффективность камрада
 pub fn tier2comrad_build_power (tier: Tier) -> usize {
     match tier {
+        Tier::NoTier => unreachable!(),
         Tier::T1 => 10,
         Tier::T2 => 20,
         Tier::T3 => 40,
@@ -143,8 +137,8 @@ pub fn spawn_comrad(
     face: FaceSlot,
     head: HeadSlot,
     torso: TorsoSlot,
-    mbdepartment: Option<MilitaryDep>,
-    mbnii: Option<SciSpec>,
+    mdep: MilitaryDep,
+    nii: SciSpec,
     room: Entity,
 ) -> Entity {
     let entity = world.push ((
@@ -158,12 +152,8 @@ pub fn spawn_comrad(
     ));
     let mut entry = world.entry(entity).unwrap();
     entry.add_component(AreaOccupied(COMRAD_RENTED_PLACE));
-    if let Some(dep) = mbdepartment {
-        entry.add_component(dep);
-    };
-    if let Some(nii) = mbnii {
-        entry.add_component(nii);
-    };
+    entry.add_component(mdep);
+    entry.add_component(nii);
     entity
 }
 
@@ -181,8 +171,8 @@ pub fn spawn_1_g (
         FaceSlot::Inhaler,
         HeadSlot::Helmet,
         TorsoSlot::HogweedSuit,
-        Some(MilitaryDep::OLPS),
-        None,
+        MilitaryDep::OLPS,
+        SciSpec::None,
         room,
     );
 
@@ -196,8 +186,8 @@ pub fn spawn_1_g (
             FaceSlot::Inhaler,
             HeadSlot::Helmet,
             TorsoSlot::HogweedSuit,
-            Some(MilitaryDep::OLPS),
-            None,
+            MilitaryDep::OLPS,
+            SciSpec::None,
             room,
         );
     };
@@ -212,8 +202,8 @@ pub fn spawn_1_g (
             FaceSlot::Inhaler,
             HeadSlot::Helmet,
             TorsoSlot::HogweedSuit,
-            Some(MilitaryDep::OLPS),
-            None,
+            MilitaryDep::OLPS,
+            SciSpec::None,
             room,
         );
     };
@@ -228,8 +218,8 @@ pub fn spawn_1_g (
             FaceSlot::Inhaler,
             HeadSlot::Helmet,
             TorsoSlot::HogweedSuit,
-            Some(MilitaryDep::OLPS),
-            None,
+            MilitaryDep::OLPS,
+            SciSpec::None,
             room,
         );
     };
@@ -244,8 +234,8 @@ pub fn spawn_1_g (
             FaceSlot::Inhaler,
             HeadSlot::Helmet,
             TorsoSlot::HogweedSuit,
-            Some(MilitaryDep::OLPS),
-            None,
+            MilitaryDep::OLPS,
+            SciSpec::None,
             room,
         );
     };

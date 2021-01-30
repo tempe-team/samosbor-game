@@ -14,7 +14,6 @@ pub enum AreaType {
     Military, // казармы
     Industrial, // технические и производственные помещения. терминалы, распределительные узлы, насосы, чаны, станки.
     Party, // склады, образовательные помещения, детские сады, школы, залы партсобраний
-    Medical, // медпункты, операционные
 }
 
 
@@ -56,7 +55,6 @@ impl From<AreaCapacity> for AreaOccupied {
         AreaOccupied (val.0)
     }
 }
-
 
 /// Метка того, к какой комнате принадлежит эта штука
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -1,5 +1,6 @@
 use std::cmp::min;
 use std::ops::*;
+use std::collections::HashMap;
 use legion::*;
 
 use crate::area::*;
@@ -89,8 +90,12 @@ fn container_type (
     resource: Resource
 ) -> StorageType {
     match resource {
-        Resource::BioRaw           => StorageType::Solid,
-        Resource::Scrap            => StorageType::Solid,
+        Resource::BioRawT1           => StorageType::Solid,
+        Resource::BioRawT2           => StorageType::Solid,
+        Resource::BioRawT3           => StorageType::Solid,
+        Resource::ScrapT1            => StorageType::Solid,
+        Resource::ScrapT2            => StorageType::Solid,
+        Resource::ScrapT3            => StorageType::Solid,
         Resource::Concrete         => StorageType::Solid,
         Resource::IsoConcrente     => StorageType::Solid,
         Resource::TransparentSlime => StorageType::Fluid,
@@ -99,11 +104,18 @@ fn container_type (
         Resource::RedSlime         => StorageType::Fluid,
         Resource::PinkSlime        => StorageType::Fluid,
         Resource::WhiteSlime       => StorageType::Fluid,
-        Resource::Component        => StorageType::Solid,
-        Resource::Reagent          => StorageType::Solid,
-        Resource::Polymer          => StorageType::Solid,
-        Resource::Ethanol          => StorageType::Fluid,
-        Resource::Concentrat       => StorageType::Solid,
+        Resource::ComponentT1      => StorageType::Solid,
+        Resource::ComponentT2      => StorageType::Solid,
+        Resource::ComponentT3      => StorageType::Solid,
+        Resource::ReagentT1        => StorageType::Solid,
+        Resource::ReagentT2        => StorageType::Solid,
+        Resource::ReagentT3        => StorageType::Solid,
+        Resource::PolymerT1        => StorageType::Solid,
+        Resource::PolymerT2        => StorageType::Solid,
+        Resource::PolymerT3        => StorageType::Solid,
+        Resource::ConcentratT1     => StorageType::Solid,
+        Resource::ConcentratT2     => StorageType::Solid,
+        Resource::ConcentratT3     => StorageType::Solid,
     }
 }
 
@@ -115,8 +127,12 @@ pub fn piece_size (
     resource: Resource,
 ) -> VolumeOccupied {
     match resource {
-        Resource::BioRaw           => VolumeOccupied(100),
-        Resource::Scrap            => VolumeOccupied(100),
+        Resource::BioRawT1         => VolumeOccupied(100),
+        Resource::BioRawT2         => VolumeOccupied(100),
+        Resource::BioRawT3         => VolumeOccupied(100),
+        Resource::ScrapT1          => VolumeOccupied(100),
+        Resource::ScrapT2          => VolumeOccupied(100),
+        Resource::ScrapT3          => VolumeOccupied(100),
         Resource::Concrete         => VolumeOccupied(1000),
         Resource::IsoConcrente     => VolumeOccupied(100),
         Resource::TransparentSlime => VolumeOccupied(50),
@@ -125,11 +141,18 @@ pub fn piece_size (
         Resource::RedSlime         => VolumeOccupied(50),
         Resource::PinkSlime        => VolumeOccupied(50),
         Resource::WhiteSlime       => VolumeOccupied(50),
-        Resource::Component        => VolumeOccupied(100),
-        Resource::Reagent          => VolumeOccupied(100),
-        Resource::Polymer          => VolumeOccupied(10),
-        Resource::Ethanol          => VolumeOccupied(1),
-        Resource::Concentrat       => VolumeOccupied(1),
+        Resource::ComponentT1      => VolumeOccupied(100),
+        Resource::ComponentT2      => VolumeOccupied(100),
+        Resource::ComponentT3      => VolumeOccupied(100),
+        Resource::ReagentT1        => VolumeOccupied(100),
+        Resource::ReagentT2        => VolumeOccupied(100),
+        Resource::ReagentT3        => VolumeOccupied(100),
+        Resource::PolymerT1        => VolumeOccupied(10),
+        Resource::PolymerT2        => VolumeOccupied(10),
+        Resource::PolymerT3        => VolumeOccupied(10),
+        Resource::ConcentratT1     => VolumeOccupied(1),
+        Resource::ConcentratT2     => VolumeOccupied(1),
+        Resource::ConcentratT3     => VolumeOccupied(1),
     }
 }
 
@@ -255,7 +278,7 @@ fn store_on_shelves (
 fn store_on_floor (
     world: &mut World,
     amount: RealUnits,
-    resource: Resource
+    resource: Resource,
 ) -> RealUnits {
     if amount == RealUnits(0) {
         return RealUnits(0)
@@ -285,7 +308,7 @@ fn store_on_floor (
                     );
                     world.push((
                         Container,
-                        resource,
+                        Some(resource),
                         BelongsToRoom(room),
                         occupied,
                     ));
@@ -301,7 +324,6 @@ fn store_on_floor (
 pub fn put_resource(
     world: &mut World,
     resource: Resource,
-    tier: Option<Tier>,
     amount: RealUnits,
 ) -> RealUnits {
     // Тип хранения - твердый или текучий
@@ -347,7 +369,7 @@ fn writeoff_from_floor (
     let mut writed_off = RealUnits(0);
     let mut containers = writeoff_query
         .iter_mut(world)
-        .filter(|(res, _, _, _)| **res == Some (resource))
+        .filter(|(res, _, _, _)| **res == Some(resource))
         .map(|(_, _, e, v)| (e,v))
         .collect::<Vec<(
             &Entity,
@@ -450,15 +472,32 @@ fn writeoff_from_storage (
     amount - writed_off
 }
 
+
 /// Изъять ресурс, освободить пространство.
-/// Если ресурса нет в нужном количестве -
-/// вернуть количество ресурса в наличии.
 pub fn writeoff (
     world: &mut World,
     resource: Resource,
     amount: RealUnits,
-) -> Result<(), RealUnits> {
-    // Проверить есть ли такой ресурс в нужном количестве в приципе
+) {
+   let rest = writeoff_from_floor(
+                                  world,
+                                  resource,
+                                  amount,
+                                  );
+   let rest_ = writeoff_from_storage(
+                                     world,
+                                     resource,
+                                     rest,
+                                     );
+   assert_eq!(rest_, RealUnits(0));
+}
+
+
+/// сколько у нас на складах этого ресурса?
+pub fn how_much_we_have (
+    world: &mut World,
+    resource: Resource,
+) -> RealUnits {
     let mut deposit_query = <(
         &Option<Resource>,
         &VolumeOccupied
@@ -468,24 +507,36 @@ pub fn writeoff (
         .filter(|(res, _)| **res == Some(resource))
         .map(|(_, occ)| occ)
         .fold(VolumeOccupied(0), |a, b| a + *b);
+    volume2real(resource, deposit_volume)
+}
 
-    let deposit = volume2real(resource, deposit_volume);
-    if amount > deposit {
-        // Если нет - сказать сколько есть на складах
-        // ничего не трогать
-        Err(deposit)
+/// Есть ли у нас вот столько разных ресурсов
+pub fn enough_resources(
+    world: &mut World,
+    required: HashMap<Resource, RealUnits>,
+) -> bool {
+    let mut result = true;
+    for (res, amount) in required.iter() {
+        let deposit = how_much_we_have(world, *res);
+        if deposit < *amount {
+            result = false;
+            break;
+        }
+    }
+    result
+}
+
+/// Списать ресурсы пачкой.
+pub fn writeoff_bunch (
+    world: &mut World,
+    bunch: HashMap<Resource, RealUnits>
+) -> Result<(),SamosborError> {
+    if enough_resources(world, bunch.clone()) {
+        for (res, amount) in bunch.iter() {
+            let _ = writeoff(world, *res, *amount);
+        }
+        Ok (())
     } else {
-        let rest = writeoff_from_floor(
-            world,
-            resource,
-            amount,
-        );
-        let rest_ = writeoff_from_storage(
-            world,
-            resource,
-            rest,
-        );
-        assert_eq!(rest_, RealUnits(0));
-        Ok(())
+        Err(SamosborError::NotEnoughResources)
     }
 }

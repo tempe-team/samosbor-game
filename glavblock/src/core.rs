@@ -18,11 +18,14 @@ pub fn d(rolls:u8, sides:u8) -> usize {
 /// Когда кто-то пытается впихнуть невпихуемое
 pub enum SamosborError {
     NoEmptyArea,
+    NotEnoughArea,
+    NotEnoughResources,
 }
 
 /// Уровень(изделия, опыта, ресурса и тп)
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Tier {
+    NoTier, // уникальные штуки
     T1,
     T2,
     T3,

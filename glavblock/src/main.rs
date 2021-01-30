@@ -55,12 +55,12 @@ fn init_colony(world: &mut World) {
         world,
         Profession::Scientist,
         Tier::T1,
-        ArmsSlot::ScienceToolSetT1,
+        ArmsSlot::ScienceToolSet,
         FaceSlot::Respirator,
         HeadSlot::Empty,
         TorsoSlot::Robe,
-        None,
-        Some(start_sci_spec),
+        MilitaryDep::None,
+        start_sci_spec,
         cell_sciencists,
     );
 
@@ -76,12 +76,12 @@ fn init_colony(world: &mut World) {
                 world,
                 Profession::Worker,
                 Tier::T1,
-                ArmsSlot::WorkToolSetT1,
+                ArmsSlot::WorkToolSet,
                 FaceSlot::Respirator,
                 HeadSlot::Empty,
                 TorsoSlot::Robe,
-                None,
-                None,
+                MilitaryDep::None,
+                SciSpec::None,
                 cell_sciencists,
             );
         }
@@ -91,40 +91,34 @@ fn init_colony(world: &mut World) {
 
     put_resource(
         world,
-        Resource::Concentrat,
-        Some(Tier::T2),
+        Resource::ConcentratT1,
         RealUnits(100),
     );
 
     put_resource(
         world,
-        Resource::Concentrat,
-        Some(Tier::T1),
+        Resource::ConcentratT1,
         RealUnits(1000),
     );
     put_resource(
         world,
-        Resource::Scrap,
-        Some(Tier::T1),
+        Resource::ScrapT1,
         RealUnits(500),
     );
     put_resource(
         world,
-        Resource::Scrap,
-        Some(Tier::T2),
+        Resource::ScrapT2,
         RealUnits(50),
     );
 
     put_resource(
         world,
-        Resource::Polymer,
-        Some(Tier::T1),
+        Resource::PolymerT1,
         RealUnits(100),
     );
     put_resource(
         world,
-        Resource::Polymer,
-        Some(Tier::T2),
+        Resource::PolymerT2,
         RealUnits(10),
     );
 }
