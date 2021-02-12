@@ -1,4 +1,5 @@
 use legion::*;
+use std::ops::*;
 use crate::core::*;
 use crate::area::*;
 use crate::people::*;
@@ -6,6 +7,10 @@ use crate::resources::*;
 use crate::storage::*;
 
 use std::collections::HashMap;
+
+/// Приоритет задачи
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Priority(pub usize);
 
 /// Метка того, к какому стационарному объекту принадлежит эта штука
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -36,6 +41,12 @@ pub enum Stationary {
 /// Гермкомплект. Инфраструктура конкертного помещения. Бывает T1, T2, T3.
 pub struct Germ ();
 
+/// В каком состоянии строение
+pub enum StationaryStatus {
+    Constructing, // Строится
+    Ready, // Готово
+}
+
 /// Сколько единиц площади занимает стационарный объект
 pub fn stationary_size (
     stationary: Stationary,
@@ -56,8 +67,6 @@ pub fn stationary_size (
 }
 
 /// Поставить герму + обустроить помещение
-/// Только для инициализации, в процессе игры гермы будут строится стандартным для
-/// построек способом(через системы с поглощением билдпавера).
 pub fn install_germ  (
     world: &mut World,
     tier: Tier,
@@ -66,6 +75,8 @@ pub fn install_germ  (
     world.push((
         Germ(),
         tier.clone(),
+        StationaryStatus::Constructing,
+        germ_requirements(tier),
         purpose,
         tier2germ_capacity(tier),
     ))
@@ -84,7 +95,23 @@ fn tier2germ_capacity(tier: Tier) {
 /// Количество труда, которое должен затратить (затратил)
 /// работник на выполнение задачи за одну смену
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
-pub struct BuildPower(usize);
+pub struct BuildPower(pub usize);
+
+impl AddAssign for BuildPower {
+    fn add_assign(&mut self, other: Self) {
+        self.0 += other.0;
+    }
+}
+
+/// Эффективность камрада
+pub fn tier2comrad_buildpower (tier: Tier) -> BuildPower {
+    match tier {
+        Tier::NoTier => unreachable!(),
+        Tier::T1 => BuildPower(10),
+        Tier::T2 => BuildPower(20),
+        Tier::T3 => BuildPower(40),
+    }
+}
 
 /// В ситуации, когда работнику высокого тира нечего делать
 /// он может выполнять работу нижних тиров.
@@ -177,7 +204,11 @@ pub struct TaskMeta {
     sci_spec: SciSpec,
 }
 
-/// Что надо по рабочим/оборудованию чтобы построить вот это здание
+/// Приоритет задачи
+#[derive(PartialEq, Eq, Clone, Copy, Debug, PartialOrd, Ord)]
+pub struct TaskPriority (pub usize);
+
+/// Что надо по рабочим/оборудованию чтобы построить эту стационарку
 pub fn stationary_requirements(
     target: Stationary,
 ) -> Vec<TaskMeta> {
@@ -190,7 +221,7 @@ pub fn stationary_requirements(
                 stationary: Stationary::None,
                 sci_spec: SciSpec::None,
             },
-                                                        ],
+        ],
         Stationary::BenchToolT2 => vec![
             TaskMeta {
                 prof: Profession::Worker,
@@ -276,11 +307,48 @@ pub fn stationary_requirements(
     }
 }
 
+/// Что надо по рабочим/оборудованию чтобы построить такую герму
+pub fn germ_requirements(
+    tier: Tier,
+) -> Vec<TaskMeta> {
+    match tier {
+        Tier::NoTier => Vec::new(),
+        Tier::T1 => vec![
+            TaskMeta {
+                prof: Profession::Worker,
+                tier: Tier::T1,
+                bp: BuildPower(10),
+                stationary: Stationary::None,
+                sci_spec: SciSpec::None,
+            },
+        ],
+        Tier::T2 => vec![
+            TaskMeta {
+                prof: Profession::Worker,
+                tier: Tier::T1,
+                bp: BuildPower(10),
+                stationary: Stationary::None,
+                sci_spec: SciSpec::None,
+            },
+        ],
+        Tier::T3 => vec![
+            TaskMeta {
+                prof: Profession::Worker,
+                tier: Tier::T1,
+                bp: BuildPower(10),
+                stationary: Stationary::None,
+                sci_spec: SciSpec::None,
+            },
+        ],
+    }
+}
+
 /// Запустить постройку
 pub fn start_build_task (
     world: &mut World,
     stationary: Stationary,
     room: Entity,
+    priority: TaskPriority,
 ) -> Result<(), SamosborError> {
     let free_space = get_room_free_space(world, room);
     let required_space = stationary_size(stationary);
@@ -289,12 +357,20 @@ pub fn start_build_task (
     } else {
         let required_resources = stationary_required_resources(stationary);
         let _ = writeoff_bunch(world, required_resources)?;
-        world.push ((
+        let task_id = world.push ((
             stationary,
-            stationary_requirements(stationary),
-            stationary_size (stationary),
+            stationary_size(stationary),
+            StationaryStatus::Constructing,
             BelongsToRoom(room),
         ));
+        let requirements = stationary_requirements(stationary);
+        for task_meta in requirements.iter() {
+            world.push((
+                task_id,
+                task_meta.clone(),
+                priority,
+            ));
+        };
         Ok (())
     }
 }

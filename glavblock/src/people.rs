@@ -1,3 +1,4 @@
+use std::hash::Hash;
 use legion::*;
 
 use crate::core::*;
@@ -42,7 +43,7 @@ pub fn random_sci_spec () -> SciSpec {
 }
 
 /// Профессия
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Profession {
     Child, // Нет профессии
     Doctor, // Доктор
@@ -117,16 +118,6 @@ pub enum ArmsSlot {
     ScienceToolSet,
 }
 
-
-/// Эффективность камрада
-pub fn tier2comrad_build_power (tier: Tier) -> usize {
-    match tier {
-        Tier::NoTier => unreachable!(),
-        Tier::T1 => 10,
-        Tier::T2 => 20,
-        Tier::T3 => 40,
-    }
-}
 
 /// Заспавнить колониста в конкретную комнату
 pub fn spawn_comrad(

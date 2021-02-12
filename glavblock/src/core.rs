@@ -1,3 +1,4 @@
+use std::hash::Hash;
 use rand::thread_rng;
 use rand::Rng;
 
@@ -23,7 +24,7 @@ pub enum SamosborError {
 }
 
 /// Уровень(изделия, опыта, ресурса и тп)
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
 pub enum Tier {
     NoTier, // уникальные штуки
     T1,

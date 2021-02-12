@@ -7,6 +7,7 @@ mod resources;
 mod storage;
 mod people;
 mod area;
+mod systems;
 
 use crate::core::*;
 use crate::production::*;
@@ -14,6 +15,7 @@ use crate::resources::*;
 use crate::storage::*;
 use crate::people::*;
 use crate::area::*;
+use crate::systems::*;
 
 fn init_colony(world: &mut World) {
     // казарма с рассчетом №1-Ж
@@ -130,7 +132,19 @@ fn turn(world: &mut World) {
 #[macroquad::main("Главблок")]
 async fn main() {
     let mut world = World::default();
+    let mut resources = Resources::default();
+    resources.insert(BuildPowerPool::new());
     init_colony(&mut world);
+    let mut schedule = Schedule::builder()
+        .add_system(spread_buildpower_system())
+        .add_system(process_tasks_system())
+        .add_system(setup_completed_stationaries_system())
+        .add_system(setup_completed_equipment_system())
+        .add_system(setup_completed_resources_system())
+        .add_system(consume_concentrat_system())
+        .build();
+
+    schedule.execute(&mut world, &mut resources);
     loop {
         clear_background(WHITE);
 
