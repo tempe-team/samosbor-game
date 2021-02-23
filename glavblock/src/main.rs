@@ -34,7 +34,7 @@ fn init_colony(world: &mut World) {
     );
 
     // T2 Склад с чанами и стеллажами
-    let stock = install_germ(
+    let _stock = install_germ(
         world,
         Tier::T2,
         AreaType::Party,
@@ -57,10 +57,6 @@ fn init_colony(world: &mut World) {
         world,
         Profession::Scientist,
         Tier::T1,
-        ArmsSlot::ScienceToolSet,
-        FaceSlot::Respirator,
-        HeadSlot::Empty,
-        TorsoSlot::Robe,
         MilitaryDep::None,
         start_sci_spec,
         cell_sciencists,
@@ -78,13 +74,9 @@ fn init_colony(world: &mut World) {
                 world,
                 Profession::Worker,
                 Tier::T1,
-                ArmsSlot::WorkToolSet,
-                FaceSlot::Respirator,
-                HeadSlot::Empty,
-                TorsoSlot::Robe,
                 MilitaryDep::None,
                 SciSpec::None,
-                cell_sciencists,
+                cell,
             );
         }
     };
@@ -125,10 +117,6 @@ fn init_colony(world: &mut World) {
     );
 }
 
-fn turn(world: &mut World) {
-    unimplemented!();
-}
-
 #[macroquad::main("Главблок")]
 async fn main() {
     let mut world = World::default();
@@ -136,15 +124,14 @@ async fn main() {
     resources.insert(BuildPowerPool::new());
     init_colony(&mut world);
     let mut schedule = Schedule::builder()
-        .add_system(spread_buildpower_system())
+        .add_system(calc_buildpower_system())
         .add_system(process_tasks_system())
+        .add_system(clean_up_completed_tasks_system())
         .add_system(setup_completed_stationaries_system())
-        .add_system(setup_completed_equipment_system())
         .add_system(setup_completed_resources_system())
         .add_system(consume_concentrat_system())
         .build();
 
-    schedule.execute(&mut world, &mut resources);
     loop {
         clear_background(WHITE);
 
@@ -163,7 +150,8 @@ async fn main() {
         set_default_camera();
         draw_text("HELLO", 30.0, 200.0, 30.0, BLACK);
 
-        turn(&mut world);
+        schedule.execute(&mut world, &mut resources);
+
         next_frame().await
     }
 }

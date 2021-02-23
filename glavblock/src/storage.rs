@@ -198,7 +198,7 @@ fn store_in_barrels (
             .iter_mut(world)
             .filter(|(_, res, _)| **res == None);
         let mut not_deposited = amount;
-        for (_, mut res, mut occupied) in free_barrels {
+        for (_, res, occupied) in free_barrels {
             *res = Some(resource);
 
             *occupied = min(
@@ -246,7 +246,7 @@ fn store_on_shelves (
             .iter_mut(world)
             .filter(|(_, res, _)| **res == None);
         let mut not_deposited = amount;
-        for (_, mut res, mut occupied) in free_shelves {
+        for (_, res, occupied) in free_shelves {
             *res = Some(resource);
             *occupied = min(
                 VolumeOccupied::from(CONTAINER_VOLUME),

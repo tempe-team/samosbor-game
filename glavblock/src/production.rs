@@ -1,5 +1,6 @@
 use legion::*;
 use std::ops::*;
+use std::hash::Hash;
 use crate::core::*;
 use crate::area::*;
 use crate::people::*;
@@ -17,7 +18,7 @@ pub struct Priority(pub usize);
 pub struct BelongsToStationary (pub Entity);
 
 /// Стационарные объекты
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Stationary {
     None, // Отсутствие постройки. Заглушка для обозначения того,
     // что некоторые производственные задачи не требуют
@@ -42,6 +43,7 @@ pub enum Stationary {
 pub struct Germ ();
 
 /// В каком состоянии строение
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum StationaryStatus {
     Constructing, // Строится
     Ready, // Готово
@@ -67,7 +69,7 @@ pub fn stationary_size (
 }
 
 /// Поставить герму + обустроить помещение
-pub fn install_germ  (
+pub fn install_germ(
     world: &mut World,
     tier: Tier,
     purpose: AreaType,
@@ -94,12 +96,18 @@ fn tier2germ_capacity(tier: Tier) {
 
 /// Количество труда, которое должен затратить (затратил)
 /// работник на выполнение задачи за одну смену
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct BuildPower(pub usize);
 
 impl AddAssign for BuildPower {
     fn add_assign(&mut self, other: Self) {
         self.0 += other.0;
+    }
+}
+
+impl SubAssign for BuildPower {
+    fn sub_assign(&mut self, other: Self) {
+        self.0 -= other.0;
     }
 }
 
@@ -197,11 +205,11 @@ pub fn stationary_required_resources (
 /// которая собственно делается
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub struct TaskMeta {
-    prof: Profession,
-    tier: Tier, // Тир исполнителя
-    bp: BuildPower,
-    stationary: Stationary, // на каком оборудовании надо выполнять работу
-    sci_spec: SciSpec,
+    pub prof: Profession,
+    pub tier: Tier, // Тир исполнителя
+    pub bp: BuildPower,
+    pub stationary: Stationary, // на каком оборудовании надо выполнять работу
+    pub sci_spec: SciSpec,
 }
 
 /// Приоритет задачи
@@ -366,7 +374,7 @@ pub fn start_build_task (
         let requirements = stationary_requirements(stationary);
         for task_meta in requirements.iter() {
             world.push((
-                task_id,
+                BelongsToStationary(task_id),
                 task_meta.clone(),
                 priority,
             ));

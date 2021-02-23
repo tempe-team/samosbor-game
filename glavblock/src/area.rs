@@ -76,7 +76,7 @@ pub fn get_room_free_space(
         &AreaOccupied
     )>::query();
     let mut sum:usize = 0;
-    for mut occupied in query.iter(world)
+    for occupied in query.iter(world)
         .filter(
             |(&BelongsToRoom (entity), _)|
             entity == room
@@ -124,7 +124,7 @@ pub fn get_sufficent_room(
     let mut areas_free_space = Vec::from_iter(
         areas
             .iter()
-            .filter(|(k, (c, o))| AreaOccupied::from(*c) >= *o)
+            .filter(|(_, (c, o))| AreaOccupied::from(*c) >= *o)
             .map(|(k, (c, o))| (k, AreaOccupied::from(*c) - *o))
             .filter (|(_, o)| *o >= for_)
     );

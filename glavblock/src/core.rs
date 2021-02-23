@@ -16,7 +16,6 @@ pub fn d(rolls:u8, sides:u8) -> usize {
     }
 }
 
-/// Когда кто-то пытается впихнуть невпихуемое
 pub enum SamosborError {
     NoEmptyArea,
     NotEnoughArea,

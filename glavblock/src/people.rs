@@ -54,80 +54,12 @@ pub enum Profession {
     Party, // Работники госаппарата. Сюда же входят материально ответственные кладовщики, СМИ, Преподаватели.
 }
 
-/// Защита дыхания, шмот налицо
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum FaceSlot {
-    Empty, // Нет снаряжения
-    Respirator, // Респиратор - базовая защита дыхательных путей
-    Inhaler, // Противогаз
-    ExoskeletonZ, // Экзоскелет зарница занимает все слоты шмота
-}
-
-/// Защита головы
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum HeadSlot {
-    Empty, // Нет снаряжения
-    Helmet, // Каска-хрущевка
-    ExoskeletonZ, // Экзоскелет зарница занимает все слоты шмота
-}
-
-/// Защита корпуса
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum TorsoSlot {
-    Empty, // Нет снаряжения
-    Clothes, // Кирзовые сапоги, тулуп, шапка. Базовая одежда с минимальными защитными свойствами. Легкие.
-    Robe, // Халаты ученого или доктора
-    ExoskeletonU, // Экзоскелет 1-у. Базовый экзоскелет увеличивающий силу, со слабыми защитными свойствами
-    ExoskeletonZ, // Экзоскелет «Зарница-2». Бронекостюм с системой жизнеобеспечения.
-    HogweedSuit, // Бронекостюм Борщевик (средняя защита от проникающих ранений, хорошая от химических воздействий), тяжелый
-    ConcreteSuit, // Бронекостюм Бетон (хорошая защита от проникающих ранений, слабая от физических воздействий), тяжелый
-    Bulletproof, // Бронежилет 3-г. Средняя защита от пуль, слабая от химии, легкий.
-}
-
-/// Защита ног
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum LegsSlot {
-    Empty,
-    TarpaulinBoots, // Кирзачи
-    HogweedSuit, // нижняя часть бронекостюма Борщевик (озк, все такое)
-    ExoskeletonU, // Экзоскелет У-1 занимает слоты ног и торса
-    ExoskeletonZ, // Экзоскелет зарница занимает все слоты шмота
-}
-
-/// Инструмент/Вооружение
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ArmsSlot {
-    Empty, // Нет снаряжения
-
-    // Военные
-    BattleRake, // Боевые грабли. Без граблистов нет ликвидации - слизь и плесень соскребать надо. И в чаны собирать.
-    Flamethrower, // Огнемет.. ну или сжигать. Но тогда ресурсы не пополнятся.
-    Granite, // Дробовик "Гранит"
-    PG6, // Пенобетонная граната
-    Grinder, // Гравижернов
-    RPL, // Ручной пулемет Лёшкинского
-    AE, // Автомат Ералашникова
-    PPS, // Пистолет - пулемет Слизнева
-    PM, // Пистолет ПМ
-    Spark, // Сварочный аппарат Искра
-
-    // Рабочие
-    WorkToolSet,
-
-    // Наука
-    ScienceToolSet,
-}
-
 
 /// Заспавнить колониста в конкретную комнату
 pub fn spawn_comrad(
     world: &mut World,
     prof: Profession,
     tier: Tier,
-    arms: ArmsSlot,
-    face: FaceSlot,
-    head: HeadSlot,
-    torso: TorsoSlot,
     mdep: MilitaryDep,
     nii: SciSpec,
     room: Entity,
@@ -135,10 +67,6 @@ pub fn spawn_comrad(
     let entity = world.push ((
         prof,
         tier,
-        arms,
-        face,
-        head,
-        torso,
         BelongsToRoom(room),
     ));
     let mut entry = world.entry(entity).unwrap();
@@ -158,10 +86,6 @@ pub fn spawn_1_g (
         world,
         Profession::Likvidator,
         Tier::T2,
-        ArmsSlot::Flamethrower,
-        FaceSlot::Inhaler,
-        HeadSlot::Helmet,
-        TorsoSlot::HogweedSuit,
         MilitaryDep::OLPS,
         SciSpec::None,
         room,
@@ -173,10 +97,6 @@ pub fn spawn_1_g (
             world,
             Profession::Likvidator,
             Tier::T1,
-            ArmsSlot::Flamethrower,
-            FaceSlot::Inhaler,
-            HeadSlot::Helmet,
-            TorsoSlot::HogweedSuit,
             MilitaryDep::OLPS,
             SciSpec::None,
             room,
@@ -189,10 +109,6 @@ pub fn spawn_1_g (
             world,
             Profession::Likvidator,
             Tier::T1,
-            ArmsSlot::BattleRake,
-            FaceSlot::Inhaler,
-            HeadSlot::Helmet,
-            TorsoSlot::HogweedSuit,
             MilitaryDep::OLPS,
             SciSpec::None,
             room,
@@ -205,10 +121,6 @@ pub fn spawn_1_g (
             world,
             Profession::Likvidator,
             Tier::T1,
-            ArmsSlot::Spark,
-            FaceSlot::Inhaler,
-            HeadSlot::Helmet,
-            TorsoSlot::HogweedSuit,
             MilitaryDep::OLPS,
             SciSpec::None,
             room,
@@ -221,10 +133,6 @@ pub fn spawn_1_g (
             world,
             Profession::Likvidator,
             Tier::T1,
-            ArmsSlot::Granite,
-            FaceSlot::Inhaler,
-            HeadSlot::Helmet,
-            TorsoSlot::HogweedSuit,
             MilitaryDep::OLPS,
             SciSpec::None,
             room,
