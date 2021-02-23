@@ -128,10 +128,8 @@ async fn main() {
         .add_system(process_tasks_system())
         .add_system(clean_up_completed_tasks_system())
         .add_system(setup_completed_stationaries_system())
-        .add_system(setup_completed_resources_system())
-        .add_system(consume_concentrat_system())
         .build();
-
+    schedule.execute(&mut world, &mut resources);
     loop {
         clear_background(WHITE);
 
@@ -150,7 +148,6 @@ async fn main() {
         set_default_camera();
         draw_text("HELLO", 30.0, 200.0, 30.0, BLACK);
 
-        schedule.execute(&mut world, &mut resources);
 
         next_frame().await
     }

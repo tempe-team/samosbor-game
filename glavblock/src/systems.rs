@@ -124,6 +124,7 @@ pub fn clean_up_completed_tasks(
 
 #[system]
 #[write_component(StationaryStatus)]
+#[read_component(Entity)]
 #[read_component(TaskMeta)]
 #[read_component(BelongsToStationary)]
 /// Глянуть если есть завершенные задания по строительству
@@ -158,20 +159,3 @@ pub fn setup_completed_stationaries(
         }
     }
 }
-
-#[system]
-#[write_component(TaskMeta)]
-/// Глянуть если есть завершенные задания по
-/// производству ресурсов. Если есть - положить на хранение.
-pub fn setup_completed_resources(
-    _world: &mut SubWorld
-) {
-    unimplemented!();
-}
-
-
-#[system]
-pub fn consume_concentrat () {
-    unimplemented!();
-}
-
