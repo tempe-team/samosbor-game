@@ -1,12 +1,15 @@
 use std::collections::HashSet;
+use std::collections::HashMap;
 use std::cmp::min;
+
 use legion::*;
 use legion::world::*;
+
 use crate::core::*;
 use crate::people::*;
 use crate::production::*;
-
-use std::collections::HashMap;
+use crate::storage::*;
+use crate::resources::*;
 
 pub type BuildPowerPool = HashMap<Profession,HashMap<Tier, BuildPower>>;
 
@@ -158,4 +161,72 @@ pub fn setup_completed_stationaries(
             *status = StationaryStatus::Ready;
         }
     }
+}
+
+
+#[system(for_each)]
+#[write_component(Satiety)]
+/// Голод
+pub fn hunger_tick(
+    world: &mut World
+) {
+    let mut died_by_hunger: Vec<Entity> = Vec::new();
+    let mut query = <(
+        &Entity,
+        &mut Satiety,
+        &mut Mood,
+    )>::query();
+    for (entity, sat, mood) in query.iter_mut(world) {
+        sat.0 -= 10;
+        if sat.0 < 10 {
+            died_by_hunger.push(*entity);
+        }
+        // ниже ста - голод - минус настроение
+        if sat.0 < 100 {
+            mood.0 -= 1;
+        }
+    }
+    for e in died_by_hunger.iter() {
+        world.remove(*e);
+    }
+}
+
+#[system(for_each)]
+#[write_component(Mood)]
+#[write_component(Satiety)]
+/// Люди едят концентрат
+pub fn consume_concentrat(
+    world: &mut World
+) {
+    // сколько есть на складе
+    let mut t1_conc_amount = how_much_we_have(
+        world,
+        Resource::ConcentratT1,
+    );
+    // Сколько выдано
+    let mut t1_conc_writeroff = 0;
+    // имеет настроение = человек.
+    // да, знаю, зашибись признак.
+    let mut query = <(
+        &mut Mood,
+        &mut Satiety,
+    )>::query();
+
+    for (mood, sat) in query.iter_mut(world){
+        if t1_conc_amount.0 <= 0 {
+            // Не дали пожрать. Настроение
+            // от такого ухудшается.
+            mood.0 -= 1;
+        } else {
+            t1_conc_amount.0 -= 1;
+            t1_conc_writeroff += 1;
+            mood.0 += 1;
+            sat.0 += 10;
+        }
+    }
+    writeoff(
+        world,
+        Resource::ConcentratT1,
+        RealUnits(t1_conc_writeroff),
+    );
 }

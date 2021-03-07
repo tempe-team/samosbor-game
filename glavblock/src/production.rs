@@ -69,6 +69,7 @@ pub fn stationary_size (
 }
 
 /// Поставить герму + обустроить помещение
+/// Версия для типа World
 pub fn install_germ(
     world: &mut World,
     tier: Tier,
@@ -85,13 +86,13 @@ pub fn install_germ(
 }
 
 /// Вместимость гермы
-fn tier2germ_capacity(tier: Tier) {
+fn tier2germ_capacity(tier: Tier) -> AreaCapacity {
     match tier {
-        Tier::NoTier => unreachable!(),
+        Tier::NoTier => unimplemented!(),
         Tier::T1 => AreaCapacity(30),
         Tier::T2 => AreaCapacity(150),
         Tier::T3 => AreaCapacity(500),
-    };
+    }
 }
 
 /// Количество труда, которое должен затратить (затратил)
@@ -365,7 +366,7 @@ pub fn start_build_task (
     } else {
         let required_resources = stationary_required_resources(stationary);
         let _ = writeoff_bunch(world, required_resources)?;
-        let task_id = world.push ((
+        let task_id = world.push((
             stationary,
             stationary_size(stationary),
             StationaryStatus::Constructing,

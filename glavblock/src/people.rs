@@ -29,6 +29,25 @@ pub enum SciSpec {
     Bio, // НИИ Регулярной Биологии. Изучает формы жизни не затронутые самосбором, либо стабильно существующие вопреки ему. В том числе - людей. Помимо людей - борщевик, лифтовых арахн, бетоноедов и прочее.
 }
 
+/// Сытость. Согласно этой статье
+/// https://pikabu.ru/story/kak_dolgo_chelovek_mozhet_prozhit_bez_edyi_3570894
+/// средний человек живет без еды примерно 20 дней.
+/// Один день - 10 единиц сытости.
+/// сытость в районе 200 - это хорошо поевший человек.
+/// Больше 200 - ожирение и прочие дебафы.
+/// 1 съетая пачка концентрата добавляет 11 единиц насыщения если сытость меньше 190. Если больше 190 - 10.
+/// На 100 начинается граница голодания с дебафами настроения.
+/// На 0 голодная смерть.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Satiety(pub u16);
+
+/// Настроение комрада.
+/// Больше 10 быть не должно. 10 - счастлив.
+/// 5, 6 - нейтрал
+/// 0 - тотально несчастлив.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Mood(pub u8);
+
 pub fn random_sci_spec () -> SciSpec {
     match d(1,7) {
         1 => SciSpec::Samosbor,
@@ -54,7 +73,6 @@ pub enum Profession {
     Party, // Работники госаппарата. Сюда же входят материально ответственные кладовщики, СМИ, Преподаватели.
 }
 
-
 /// Заспавнить колониста в конкретную комнату
 pub fn spawn_comrad(
     world: &mut World,
@@ -68,11 +86,12 @@ pub fn spawn_comrad(
         prof,
         tier,
         BelongsToRoom(room),
+        AreaOccupied(COMRAD_RENTED_PLACE),
+        mdep,
+        nii,
+        Satiety(100),
+        Mood(5),
     ));
-    let mut entry = world.entry(entity).unwrap();
-    entry.add_component(AreaOccupied(COMRAD_RENTED_PLACE));
-    entry.add_component(mdep);
-    entry.add_component(nii);
     entity
 }
 

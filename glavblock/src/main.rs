@@ -1,4 +1,5 @@
-use macroquad::*;
+use macroquad::prelude::*;
+
 use legion::*;
 
 mod core;
@@ -8,6 +9,7 @@ mod storage;
 mod people;
 mod area;
 mod systems;
+mod render;
 
 use crate::core::*;
 use crate::production::*;
@@ -16,6 +18,7 @@ use crate::storage::*;
 use crate::people::*;
 use crate::area::*;
 use crate::systems::*;
+use crate::render::draw_world;
 
 fn init_colony(world: &mut World) {
     // казарма с рассчетом №1-Ж
@@ -41,7 +44,7 @@ fn init_colony(world: &mut World) {
     );
 
     // Т1 комнатка для исследований
-    install_germ (
+    install_germ(
         world,
         Tier::T1,
         AreaType::Science,
@@ -122,33 +125,22 @@ async fn main() {
     let mut world = World::default();
     let mut resources = Resources::default();
     resources.insert(BuildPowerPool::new());
-    init_colony(&mut world);
+    init_colony (&mut world);
     let mut schedule = Schedule::builder()
         .add_system(calc_buildpower_system())
         .add_system(process_tasks_system())
         .add_system(clean_up_completed_tasks_system())
         .add_system(setup_completed_stationaries_system())
+        .add_system(hunger_tick_system())
+        .add_system(consume_concentrat_system())
         .build();
-    schedule.execute(&mut world, &mut resources);
+
     loop {
-        clear_background(WHITE);
-
-        // Render some primitives in camera space
-
-        set_camera(Camera2D {
-            zoom: vec2(1., screen_width() / screen_height()),
-            ..Default::default()
-        });
-        draw_line(-0.4, 0.4, -0.8, 0.9, 0.05, BLUE);
-        draw_rectangle(-0.3, 0.3, 0.2, 0.2, GREEN);
-        draw_circle(0., 0., 0.1, YELLOW);
-
-        // Back to screen space, render some text
-
-        set_default_camera();
-        draw_text("HELLO", 30.0, 200.0, 30.0, BLACK);
-
-
-        next_frame().await
+        draw_world(
+            &mut world,
+            &mut resources,
+            &mut schedule,
+        );
+        next_frame().await;
     }
 }

@@ -1,6 +1,7 @@
 use std::cmp::min;
 use std::ops::*;
 use std::collections::HashMap;
+
 use legion::*;
 
 use crate::area::*;
@@ -479,17 +480,17 @@ pub fn writeoff (
     resource: Resource,
     amount: RealUnits,
 ) {
-   let rest = writeoff_from_floor(
-                                  world,
-                                  resource,
-                                  amount,
-                                  );
-   let rest_ = writeoff_from_storage(
-                                     world,
-                                     resource,
-                                     rest,
-                                     );
-   assert_eq!(rest_, RealUnits(0));
+    let rest = writeoff_from_floor(
+        world,
+        resource,
+        amount,
+    );
+    let rest_ = writeoff_from_storage(
+        world,
+        resource,
+        rest,
+    );
+    assert_eq!(rest_, RealUnits(0));
 }
 
 
