@@ -91,12 +91,12 @@ fn container_type (
     resource: Resource
 ) -> StorageType {
     match resource {
-        Resource::BioRawT1           => StorageType::Solid,
-        Resource::BioRawT2           => StorageType::Solid,
-        Resource::BioRawT3           => StorageType::Solid,
-        Resource::ScrapT1            => StorageType::Solid,
-        Resource::ScrapT2            => StorageType::Solid,
-        Resource::ScrapT3            => StorageType::Solid,
+        Resource::BioRawT1         => StorageType::Solid,
+        Resource::BioRawT2         => StorageType::Solid,
+        Resource::BioRawT3         => StorageType::Solid,
+        Resource::ScrapT1          => StorageType::Solid,
+        Resource::ScrapT2          => StorageType::Solid,
+        Resource::ScrapT3          => StorageType::Solid,
         Resource::Concrete         => StorageType::Solid,
         Resource::IsoConcrente     => StorageType::Solid,
         Resource::TransparentSlime => StorageType::Fluid,
@@ -509,6 +509,26 @@ pub fn how_much_we_have (
         .map(|(_, occ)| occ)
         .fold(VolumeOccupied(0), |a, b| a + *b);
     volume2real(resource, deposit_volume)
+}
+
+/// сколько у нас вообще чего в наличии
+pub fn what_we_have(
+    world: &mut World,
+) -> HashMap<Resource, RealUnits> {
+    let mut result = HashMap::new();
+    let mut deposit_query = <(
+        &Option<Resource>,
+        &VolumeOccupied
+    )>::query();
+    for (mbRes, vol) in deposit_query.iter (world) {
+        if let Some(res) = mbRes {
+            let mut vol_ = result
+                .entry(*res)
+                .or_insert(RealUnits(0));
+            *vol_ += volume2real(*res, *vol);
+        }
+    };
+    result
 }
 
 /// Есть ли у нас вот столько разных ресурсов

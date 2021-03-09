@@ -1,4 +1,7 @@
+use std::fmt;
 use std::hash::Hash;
+use std::collections::HashMap;
+
 use legion::*;
 
 use crate::core::*;
@@ -64,13 +67,26 @@ pub fn random_sci_spec () -> SciSpec {
 /// Профессия
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Profession {
-    Child, // Нет профессии
-    Doctor, // Доктор
+    NoProf, // Нет профессии
     Stalker, // Мусорщик
     Likvidator, // Ликвидатор
     Scientist, // Ученый
     Worker, // Работник производства
     Party, // Работники госаппарата. Сюда же входят материально ответственные кладовщики, СМИ, Преподаватели.
+}
+
+impl fmt::Display for Profession {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let name = match self {
+            NoProf => "Тунеядец".to_string(),
+            Stalker => "Мусорщик".to_string(),
+            Likvidator => "Ликвидатор".to_string(),
+            Scientist => "Ученый".to_string(),
+            Worker => "Рабочий".to_string(),
+            Party => "Партийный функционер".to_string(),
+        };
+        write!(f, "{}", name)
+    }
 }
 
 /// Заспавнить колониста в конкретную комнату
@@ -93,6 +109,21 @@ pub fn spawn_comrad(
         Mood(5),
     ));
     entity
+}
+
+/// Сколько у нас людей по профессиям
+pub fn people_by_profession(
+    world: &mut World,
+) -> HashMap<Profession, usize> {
+    let mut result = HashMap::new();
+    let mut query = <&Profession>::query();
+    for prof in query.iter(world) {
+        let val = result
+            .entry(*prof)
+            .or_insert(0);
+        *val += 1;
+    }
+    result
 }
 
 /// Отряд ликвидаторов ОЛПС по стандарту №1-Ж
@@ -157,4 +188,28 @@ pub fn spawn_1_g (
             room,
         );
     };
+}
+
+/// Сумма всего настроения в блоке
+pub fn block_mood(
+    world: &mut World,
+) -> usize {
+    let mut result = 0;
+    let mut query = <&Mood>::query();
+    for Mood(m) in query.iter(world) {
+        result += *m as usize
+    };
+    result
+}
+
+/// Насколько накормлены люди
+pub fn block_satiety(
+    world: &mut World,
+) -> Satiety {
+    let mut result = 0;
+    let mut query = <&Satiety>::query();
+    for Satiety(m) in query.iter(world) {
+        result += m
+    };
+    Satiety(result)
 }

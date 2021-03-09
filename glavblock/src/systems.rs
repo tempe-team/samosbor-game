@@ -102,7 +102,6 @@ pub fn process_tasks(
     }
 }
 
-
 #[system(for_each)]
 #[read_component(Entity)]
 #[write_component(TaskMeta)]
@@ -124,7 +123,6 @@ pub fn clean_up_completed_tasks(
     };
 }
 
-
 #[system]
 #[write_component(StationaryStatus)]
 #[read_component(Entity)]
@@ -145,7 +143,6 @@ pub fn setup_completed_stationaries(
     for BelongsToStationary(entity) in under_construction_q.iter (world) {
         under_construction.insert(*entity);
     };
-
     let mut stats_query = <(&Entity, &mut StationaryStatus)>::query();
     // стационарки которые строятся и не введены в эксплуатацию
     for (entity, status) in stats_query
@@ -162,7 +159,6 @@ pub fn setup_completed_stationaries(
         }
     }
 }
-
 
 #[system(for_each)]
 #[write_component(Satiety)]
