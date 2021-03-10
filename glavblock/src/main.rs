@@ -8,7 +8,7 @@ mod resources;
 mod storage;
 mod people;
 mod area;
-mod systems;
+mod turn;
 mod render;
 
 use crate::core::*;
@@ -16,8 +16,8 @@ use crate::production::*;
 use crate::resources::*;
 use crate::storage::*;
 use crate::people::*;
+use crate::turn::BuildPowerPool;
 use crate::area::*;
-use crate::systems::*;
 use crate::render::draw_world;
 
 fn init_colony(world: &mut World) {
@@ -126,21 +126,10 @@ async fn main() {
     let mut resources = Resources::default();
     resources.insert(BuildPowerPool::new());
     init_colony (&mut world);
-    let mut schedule = Schedule::builder()
-        .add_system(calc_buildpower_system())
-        .add_system(process_tasks_system())
-        .add_system(clean_up_completed_tasks_system())
-        .add_system(setup_completed_stationaries_system())
-        .add_system(hunger_tick_system())
-        .add_system(consume_concentrat_system())
-        .build();
-
     loop {
         draw_world(
             &mut world,
             &mut resources,
-            &mut schedule,
-        );
-        next_frame().await;
+        ).await;
     }
 }

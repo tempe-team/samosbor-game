@@ -13,14 +13,26 @@ use crate::resources::*;
 
 pub type BuildPowerPool = HashMap<Profession,HashMap<Tier, BuildPower>>;
 
-#[system]
-#[read_component(Profession)]
-#[read_component(Tier)]
-/// Сформировать пул билдпавера
-pub fn calc_buildpower(
-    world: &mut SubWorld,
-    #[resource] buildpower_pool: &mut BuildPowerPool,
+pub fn turn(
+    world: &mut World,
+    resources: &mut Resources,
 ) {
+    calc_buildpower(world, resources);
+    process_tasks(world, resources);
+    clean_up_completed_tasks(world, resources);
+    setup_completed_stationaries(world, resources);
+    hunger_tick(world, resources);
+    consume_concentrat(world, resources);
+}
+
+/// Сформировать пул билдпавера
+fn calc_buildpower(
+    world: &mut World,
+    resources: &mut Resources,
+) {
+    let mut buildpower_pool = resources
+        .get_mut::<BuildPowerPool>()
+        .unwrap();
     let mut people_query = <(
         &Profession,
         &Tier,
@@ -38,20 +50,18 @@ pub fn calc_buildpower(
     }
 }
 
-#[system]
-#[read_component(TaskPriority)]
-#[read_component(Stationary)]
-#[read_component(StationaryStatus)]
-#[write_component(TaskMeta)]
 /// Распределить все очки работы по заданиям
 /// TODO: Наивная реализация. T3 инженеры на T3
 /// станках тоже должны уметь делать T1 задания, причем
 /// более эффективно чем T1 работяги на T1 станках.
 /// Надо писать правила деградации.
 pub fn process_tasks(
-    world: &mut SubWorld,
-    #[resource] buildpower_pool: &mut BuildPowerPool,
+    world: &mut World,
+    resources: &mut Resources,
 ) {
+    let mut buildpower_pool = resources
+        .get_mut::<BuildPowerPool>()
+        .unwrap();
     let mut stationary_query = <(
         &Stationary,
         &StationaryStatus,
@@ -102,12 +112,10 @@ pub fn process_tasks(
     }
 }
 
-#[system(for_each)]
-#[read_component(Entity)]
-#[write_component(TaskMeta)]
 /// Убрать выполненные таски
 pub fn clean_up_completed_tasks(
-    world: &mut World
+    world: &mut World,
+    _resources: &mut Resources,
 ) {
     let mut to_delete:HashSet<Entity> = HashSet::new();
     let mut query = <(&Entity, &TaskMeta)>::query();
@@ -123,16 +131,12 @@ pub fn clean_up_completed_tasks(
     };
 }
 
-#[system]
-#[write_component(StationaryStatus)]
-#[read_component(Entity)]
-#[read_component(TaskMeta)]
-#[read_component(BelongsToStationary)]
 /// Глянуть если есть завершенные задания по строительству
 /// стационарных объектов
 /// Если есть - ввести в эксплуатацию.
 pub fn setup_completed_stationaries(
-    world: &mut SubWorld
+    world: &mut World,
+    _resources: &mut Resources,
 ) {
     // Стационарки по которым есть незакрытые таски.
     // Предполагается что завершенные таски удалены предыдущей системой.
@@ -160,11 +164,10 @@ pub fn setup_completed_stationaries(
     }
 }
 
-#[system(for_each)]
-#[write_component(Satiety)]
 /// Голод
 pub fn hunger_tick(
-    world: &mut World
+    world: &mut World,
+    _resources: &mut Resources,
 ) {
     let mut died_by_hunger: Vec<Entity> = Vec::new();
     let mut query = <(
@@ -187,12 +190,10 @@ pub fn hunger_tick(
     }
 }
 
-#[system(for_each)]
-#[write_component(Mood)]
-#[write_component(Satiety)]
 /// Люди едят концентрат
 pub fn consume_concentrat(
-    world: &mut World
+    world: &mut World,
+    _resources: &mut Resources,
 ) {
     // сколько есть на складе
     let mut t1_conc_amount = how_much_we_have(

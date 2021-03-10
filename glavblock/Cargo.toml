@@ -7,7 +7,7 @@ description = "Bastard of text quest and econimical strategy in dark Samosbor se
 license = "GNU GPL-3"
 
 [dependencies]
-legion = { version = "0.3.1" }
+legion = { version = "0.4.0" }
 rand = { version = "0.8.2" }
 macroquad = { version = "0.3.0-alpha.15" }
 megaui-macroquad = "0.1.3"

@@ -7,12 +7,12 @@ use megaui_macroquad::{
 };
 
 use crate::people::*;
+use crate::turn::turn;
 use crate::storage::*;
 
-pub fn draw_world(
+pub async fn draw_world(
     world: &mut World,
     resources: &mut Resources,
-    schedule: &mut Schedule,
 ) {
     draw_window(
         hash!(),
@@ -54,12 +54,10 @@ pub fn draw_world(
                 &format!("Satiety: {}", satiety.0 as usize / people.len()),
             );
             if ui.button(Vector2::new(70., 70.), "Turn") {
-                schedule.execute(
-                    world,
-                    resources,
-                );
+                turn(world,resources);
             }
         },
     );
     draw_megaui();
+    next_frame().await
 }
