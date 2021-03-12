@@ -1,4 +1,5 @@
-use macroquad::prelude::*;
+use Resource::ConcentratT1;
+
 
 use legion::*;
 
@@ -18,7 +19,7 @@ use crate::storage::*;
 use crate::people::*;
 use crate::turn::BuildPowerPool;
 use crate::area::*;
-use crate::render::draw_world;
+use crate::render::draw_loop;
 
 fn init_colony(world: &mut World) {
     // казарма с рассчетом №1-Ж
@@ -88,13 +89,13 @@ fn init_colony(world: &mut World) {
 
     put_resource(
         world,
-        Resource::ConcentratT1,
+        ConcentratT1,
         RealUnits(100),
     );
 
     put_resource(
         world,
-        Resource::ConcentratT1,
+        ConcentratT1,
         RealUnits(1000),
     );
     put_resource(
@@ -126,10 +127,8 @@ async fn main() {
     let mut resources = Resources::default();
     resources.insert(BuildPowerPool::new());
     init_colony (&mut world);
-    loop {
-        draw_world(
-            &mut world,
-            &mut resources,
-        ).await;
-    }
+    draw_loop(
+        &mut world,
+        &mut resources,
+    ).await;
 }
