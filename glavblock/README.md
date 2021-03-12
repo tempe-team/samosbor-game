@@ -1,3 +1,6 @@
+# ABADONED IN FAVOR OF https://github.com/tempe-team/glavblock
+
+
 # Glavblock
 
 Game in [Samosbor](https://samosb.org/) setting. Bastard of economical strategy and visual novel.
