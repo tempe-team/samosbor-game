@@ -1,0 +1,20 @@
+[package]
+name = "glavblock"
+version = "0.1.0"
+authors = [ "Artem Kanev <a-kanev@yandex.ru>"]
+edition = "2018"
+description = "Bastard of text quest and econimical strategy in dark Samosbor setting."
+license = "GNU GPL-3"
+
+[dependencies]
+legion = { version = "0.4.0" }
+rand = { version = "0.8.2" }
+macroquad = { git = "https://github.com/nixorn/macroquad", branch = "test-cyrrylic" }
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
+
